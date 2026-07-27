@@ -16,6 +16,7 @@ namespace Sirstrap.Core
             AddSettings(services);
             AddWeao(services);
             AddCdn(services);
+            AddCleaner(services);
             AddDeployment(services);
             AddLaunch(services);
             AddActivity(services);
@@ -42,6 +43,12 @@ namespace Sirstrap.Core
             services.TryAddSingleton<ICdnProbeUriFactory, CdnProbeUriFactory>();
             services.TryAddSingleton<ICdnProber, HttpCdnProber>();
             services.TryAddSingleton<ICdnResolver, CdnResolver>();
+        }
+
+        private static void AddCleaner(IServiceCollection services)
+        {
+            services.AddSirstrapCleaner();
+            services.TryAddSingleton<ICleanupService, CleanupService>();
         }
 
         private static void AddDeployment(IServiceCollection services)

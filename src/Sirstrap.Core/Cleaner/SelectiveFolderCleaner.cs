@@ -102,7 +102,7 @@ namespace Sirstrap.Core.Cleaner
                 {
                     Log.Information("[*] The file {FilePath} contains authentication or configuration data.", filePath);
 
-                    if (!userInteraction.Confirm($"The file {filePath} is used for authentication or configuration. Delete it?"))
+                    if (!userInteraction.Confirm($"The file {filePath} is used for authentication or configuration. Delete it?", config.CleanProtectedFiles))
                     {
                         Log.Information("[*] Kept the protected file {FilePath} at the user's request.", filePath);
 
@@ -129,7 +129,7 @@ namespace Sirstrap.Core.Cleaner
         {
             Log.Information("[*] The folder {FolderPath} contains configuration or authentication data.", folderPath);
 
-            if (userInteraction.Confirm($"The folder {folderPath} contains configuration or authentication data. Delete it?"))
+            if (userInteraction.Confirm($"The folder {folderPath} contains configuration or authentication data. Delete it?", config.CleanProtectedFiles))
             {
                 folderDeleter.DeleteFolder(folderPath);
 

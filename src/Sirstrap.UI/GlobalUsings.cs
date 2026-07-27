@@ -18,6 +18,7 @@ global using Serilog.Events;
 global using Sirstrap.Core;
 global using Sirstrap.Core.Activity;
 global using Sirstrap.Core.Cdn;
+global using Sirstrap.Core.Cleaner;
 global using Sirstrap.Core.Common;
 global using Sirstrap.Core.Deployment;
 global using Sirstrap.Core.FastFlags;

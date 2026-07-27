@@ -93,6 +93,19 @@ namespace Sirstrap.UI
 
                     desktop.MainWindow.Opened += OnFirstOpen;
                 }
+
+                var configuration = Program.Services.GetRequiredService<SirstrapConfiguration>();
+
+                if (configuration.CleanerEnabled
+                    && configuration.CleanerCleanOnLaunch)
+                    Task.Run(() => RunCleanup(configuration, "launch"));
+
+                desktop.Exit += (_, _) =>
+                {
+                    if (configuration.CleanerEnabled
+                        && configuration.CleanerCleanOnExit)
+                        RunCleanup(configuration, "exit");
+                };
             }
 
             base.OnFrameworkInitializationCompleted();
@@ -165,5 +178,7 @@ namespace Sirstrap.UI
         private static Color DarkenColor(Color color, double factor) => new(color.A, (byte)(color.R * (1 - factor)), (byte)(color.G * (1 - factor)), (byte)(color.B * (1 - factor)));
 
         private static Color LightenColor(Color color, double factor) => new(color.A, (byte)Math.Min(255, color.R + (255 - color.R) * factor), (byte)Math.Min(255, color.G + (255 - color.G) * factor), (byte)Math.Min(255, color.B + (255 - color.B) * factor));
+
+        private static void RunCleanup(SirstrapConfiguration configuration, string trigger) => Program.Services.GetRequiredService<ICleanupService>().Run(trigger, configuration.CleanerCleanTempFolders, configuration.CleanerCleanProtectedFiles);
     }
 }

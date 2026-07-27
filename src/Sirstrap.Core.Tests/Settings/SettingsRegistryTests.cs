@@ -20,6 +20,11 @@ namespace Sirstrap.Core.Tests.Settings
 
             string[] keys = [.. registry.Settings.Select(s => s.Key)];
 
+            Assert.Contains("CLEANER_CLEAN_ON_EXIT", keys);
+            Assert.Contains("CLEANER_CLEAN_ON_LAUNCH", keys);
+            Assert.Contains("CLEANER_CLEAN_PROTECTED_FILES", keys);
+            Assert.Contains("CLEANER_CLEAN_TEMP_FOLDERS", keys);
+            Assert.Contains("CLEANER_ENABLED", keys);
             Assert.Contains("ROBLOX_CDN_URI_OVERRIDE", keys);
             Assert.Contains("ROBLOX_FAST_FLAGS_ENABLED", keys);
             Assert.Contains("ROBLOX_INCOGNITO", keys);

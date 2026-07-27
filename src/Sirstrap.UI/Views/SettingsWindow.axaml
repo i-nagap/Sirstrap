@@ -85,6 +85,14 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding RobloxMultiInstance}" />
                         </common:SettingsRow>
+                        <common:SettingsRow Label="Enable SirHurt Cleaner:">
+                            <CheckBox
+                                Height="32"
+                                Margin="10,0,0,0"
+                                CornerRadius="999"
+                                DataContext="{Binding Settings}"
+                                IsChecked="{Binding CleanerEnabled}" />
+                        </common:SettingsRow>
                         <common:SettingsRow Label="Enable Sirstrap auto-update:">
                             <CheckBox
                                 Height="32"
@@ -229,6 +237,52 @@
                                     </Style>
                                 </ComboBox.Styles>
                             </ComboBox>
+                        </common:SettingsRow>
+                        <common:SettingsRow Label="SirHurt Cleaner:">
+                            <StackPanel
+                                Width="200"
+                                IsEnabled="{Binding Settings.CleanerEnabled}"
+                                Spacing="5">
+                                <CheckBox
+                                    Height="32"
+                                    Content="Clean on launch"
+                                    CornerRadius="999"
+                                    IsChecked="{Binding Settings.CleanerCleanOnLaunch}" />
+                                <CheckBox
+                                    Height="32"
+                                    Content="Clean on exit"
+                                    CornerRadius="999"
+                                    IsChecked="{Binding Settings.CleanerCleanOnExit}" />
+                                <CheckBox
+                                    Height="32"
+                                    Content="Clean temporary folders"
+                                    CornerRadius="999"
+                                    IsChecked="{Binding Settings.CleanerCleanTempFolders}" />
+                                <CheckBox
+                                    Height="32"
+                                    Content="Clean protected files"
+                                    CornerRadius="999"
+                                    IsChecked="{Binding Settings.CleanerCleanProtectedFiles}"
+                                    ToolTip.Tip="Also delete authentication and configuration files, such as Sirstrap.ini" />
+                                <Button
+                                    Height="32"
+                                    HorizontalAlignment="Stretch"
+                                    Classes="hover-lift"
+                                    Command="{Binding RunCleanerCommand}"
+                                    CornerRadius="999"
+                                    IsEnabled="{Binding !IsCleanerRunning}">
+                                    <Button.Background>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                            <GradientStop Offset="0" Color="#73bf6a6a" />
+                                            <GradientStop Offset="1" Color="#26bf6a6a" />
+                                        </LinearGradientBrush>
+                                    </Button.Background>
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Text="Run cleaner now" />
+                                </Button>
+                            </StackPanel>
                         </common:SettingsRow>
                         <common:SettingsRow Label="SirHurt path:">
                             <Grid Width="200" ColumnDefinitions="*,Auto">
