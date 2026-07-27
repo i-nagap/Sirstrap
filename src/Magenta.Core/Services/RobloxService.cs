@@ -51,7 +51,7 @@
                     {
                         Arguments = $"/c start {startUri}",
                         CreateNoWindow = true,
-                        FileName = "cmd.exe",
+                        FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe"),
                         UseShellExecute = true
                     }
                 };

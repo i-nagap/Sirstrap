@@ -26,7 +26,7 @@ namespace Sirstrap.Core.Windows
 
             Process.Start(new ProcessStartInfo
             {
-                FileName = "cmd.exe",
+                FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe"),
                 Arguments = $"/c \"{scriptPath}\"",
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,

@@ -84,7 +84,7 @@ namespace Sirstrap.UI
                 {
                     void OnFirstOpen(object? sender, EventArgs e)
                     {
-                        desktop.MainWindow!.Opened -= OnFirstOpen;
+                        desktop.MainWindow.Opened -= OnFirstOpen;
 
                         desktop.MainWindow.Hide();
 

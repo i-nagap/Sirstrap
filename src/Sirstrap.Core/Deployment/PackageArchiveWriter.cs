@@ -8,7 +8,7 @@ namespace Sirstrap.Core.Deployment
 
         public async Task AddPackageAsync(string package, byte[] packageBytes)
         {
-            if (PackageRootCatalog.TryGetRoot(package, out string root))
+            if (PackageRootCatalog.TryGetRoot(package, out var root))
                 await AddExplodedPackageAsync(root, packageBytes);
             else
                 await WriteEntryAsync(package, packageBytes);
