@@ -68,6 +68,12 @@
             }
         }
 
+        private void DimOwnerOpacity()
+        {
+            if (Owner is Window owner)
+                owner.Opacity = 0.25;
+        }
+
         private static double EaseInExpo(double x) => x <= 0 ? 0 : Math.Pow(2, 10 * (x - 1));
 
         private static double EaseOutExpo(double x) => x >= 1 ? 1 : 1 - Math.Pow(2, -10 * x);
@@ -87,6 +93,8 @@
                 return;
             }
 
+            RestoreOwnerOpacity();
+
             await AnimateWindowClose();
 
             Closing -= OnClosing;
@@ -96,11 +104,52 @@
 
         protected async void OnLoaded(object? sender, RoutedEventArgs e)
         {
+            PositionRelativeToOwner();
+            DimOwnerOpacity();
+
             await AnimateWindowOpen();
 
             OpenAnimationFinished = true;
 
             OpenAnimationCompleted?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void PositionRelativeToOwner()
+        {
+            if (Owner is not Window window)
+                return;
+
+            var screen = Screens.ScreenFromWindow(window);
+
+            if (screen == null)
+                return;
+
+            var ownerWidthPx = (int)(window.Bounds.Width * window.RenderScaling);
+            var ownerHeightPx = (int)(window.Bounds.Height * window.RenderScaling);
+            var thisWidthPx = (int)(Bounds.Width * RenderScaling);
+            var thisHeightPx = (int)(Bounds.Height * RenderScaling);
+            var gap = 8;
+            var candidateX = window.Position.X + ownerWidthPx + gap;
+            var candidateY = window.Position.Y;
+            var workingArea = screen.WorkingArea;
+
+            if (candidateX >= workingArea.X
+                && candidateX + thisWidthPx <= workingArea.Right
+                && candidateY >= workingArea.Y
+                && candidateY + thisHeightPx <= workingArea.Bottom)
+            {
+                Position = new PixelPoint(candidateX, candidateY);
+
+                return;
+            }
+
+            Position = new PixelPoint(window.Position.X + ((ownerWidthPx - thisWidthPx) / 2), window.Position.Y + ((ownerHeightPx - thisHeightPx) / 2));
+        }
+
+        private void RestoreOwnerOpacity()
+        {
+            if (Owner is Window owner)
+                owner.Opacity = 1;
         }
     }
 }

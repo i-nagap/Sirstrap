@@ -16,7 +16,7 @@
     SizeToContent="WidthAndHeight"
     Title=""
     TransparencyLevelHint="AcrylicBlur"
-    WindowStartupLocation="CenterOwner"
+    WindowStartupLocation="Manual"
     x:DataType="vm:SettingsWindowViewModel">
     <Grid Margin="5">
         <Grid.RowDefinitions>
