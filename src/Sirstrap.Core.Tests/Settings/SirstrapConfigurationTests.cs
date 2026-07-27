@@ -13,6 +13,7 @@ namespace Sirstrap.Core.Tests.Settings
             Assert.True(config.RobloxFastFlagsEnabled);
             Assert.False(config.RobloxIncognito);
             Assert.True(config.RobloxMultiInstance);
+            Assert.Equal(string.Empty, config.RobloxVersionOverride);
             Assert.Equal(RobloxVersionSources.SirHurt, config.RobloxVersionSource);
             Assert.Equal(RobloxCdnService.DefaultBaseUri, config.ResolvedRobloxCdnUri);
             Assert.Equal(string.Empty, config.RobloxCdnUriOverride);

@@ -12,11 +12,11 @@ namespace Sirstrap.Core.Tests.Deployment
             FakeRobloxLauncher Launcher,
             FakePathManager Paths);
 
-        private static Harness NewHarness(string root, string resolvedVersion = "v1", bool launchResult = true)
+        private static Harness NewHarness(string root, string resolvedVersion = "v1", bool launchResult = true, string? sourceVersion = null, bool hasVersionOverride = false, string? failingVersionHash = null)
         {
             FakeSirstrapUpdateService update = new();
-            FakeRobloxVersionService version = new(resolvedVersion);
-            FakePackageManager packages = new();
+            FakeRobloxVersionService version = new(resolvedVersion, sourceVersion) { HasVersionOverride = hasVersionOverride };
+            FakePackageManager packages = new() { FailingVersionHash = failingVersionHash };
             FakeCdnResolver cdn = new();
             FakeInstaller installer = new();
             FakeRobloxLauncher launcher = new(launchResult);
@@ -83,6 +83,60 @@ namespace Sirstrap.Core.Tests.Deployment
             Assert.Equal(1, h.Launcher.Calls);
             Assert.Equal(0, h.Packages.WindowsCalls);
             Assert.Equal(0, h.Cdn.Calls);
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_FallsBackToVersionSource_WhenOverriddenVersionFails()
+        {
+            using TempDirectory temp = new();
+            Harness h = NewHarness(temp.Path, resolvedVersion: "overridden", sourceVersion: "source", hasVersionOverride: true, failingVersionHash: "overridden");
+
+            await h.Downloader.ExecuteAsync([], SirstrapType.CLI);
+
+            Assert.Equal(1, h.Version.SourceCalls);
+            Assert.Equal(2, h.Packages.WindowsCalls);
+            Assert.Equal(1, h.Installer.Calls);
+            Assert.True(h.Launcher.Calls >= 1);
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_DoesNotFallBackToVersionSource_WhenVersionIsNotOverridden()
+        {
+            using TempDirectory temp = new();
+            Harness h = NewHarness(temp.Path, resolvedVersion: "resolved", sourceVersion: "source", failingVersionHash: "resolved");
+
+            try
+            {
+                await h.Downloader.ExecuteAsync([], SirstrapType.CLI);
+
+                Assert.Equal(0, h.Version.SourceCalls);
+                Assert.Equal(1, h.Packages.WindowsCalls);
+                Assert.Equal(0, h.Installer.Calls);
+            }
+            finally
+            {
+                Environment.ExitCode = 0;
+            }
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_DoesNotFallBackToVersionSource_WhenVersionHashIsProvided()
+        {
+            using TempDirectory temp = new();
+            Harness h = NewHarness(temp.Path, sourceVersion: "source", hasVersionOverride: true, failingVersionHash: "v1");
+
+            try
+            {
+                await h.Downloader.ExecuteAsync(["--version-hash", "v1"], SirstrapType.CLI);
+
+                Assert.Equal(0, h.Version.Calls);
+                Assert.Equal(0, h.Version.SourceCalls);
+                Assert.Equal(1, h.Packages.WindowsCalls);
+            }
+            finally
+            {
+                Environment.ExitCode = 0;
+            }
         }
 
         [Fact]

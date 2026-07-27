@@ -36,6 +36,8 @@ namespace Sirstrap.Core.Settings
 
         public string RobloxPreviousInstallationPath { get; set; } = string.Empty;
 
+        public string RobloxVersionOverride { get; set; } = string.Empty;
+
         public string RobloxVersionSource { get; set; } = RobloxVersionSources.SirHurt;
 
         public string RobloxCdnUriOverride { get; set; } = string.Empty;

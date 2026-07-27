@@ -56,6 +56,9 @@ namespace Sirstrap.UI.Models
         private bool _robloxMultiInstance = true;
 
         [ObservableProperty]
+        private string _robloxVersionOverride = string.Empty;
+
+        [ObservableProperty]
         private string _robloxVersionSource = RobloxVersionSources.SirHurt;
 
         [ObservableProperty]
@@ -96,6 +99,7 @@ namespace Sirstrap.UI.Models
             RobloxIncognito = configuration.RobloxIncognito;
             RobloxInstallationPath = configuration.RobloxInstallationPath;
             RobloxMultiInstance = configuration.RobloxMultiInstance;
+            RobloxVersionOverride = configuration.RobloxVersionOverride;
             RobloxVersionSource = configuration.RobloxVersionSource;
             RobloxCdnUriOverride = configuration.RobloxCdnUriOverride;
             RunSirHurtEnabled = File.Exists(Path.Combine(sirHurtPath, "bootstrapper.exe"));
@@ -129,6 +133,8 @@ namespace Sirstrap.UI.Models
             _fastFlagService.SetFlags(flags);
             _configuration.RobloxInstallationPath = RobloxInstallationPath;
             _configuration.RobloxMultiInstance = RobloxMultiInstance;
+            _configuration.RobloxVersionOverride = RobloxVersionOverride.Trim();
+            RobloxVersionOverride = _configuration.RobloxVersionOverride;
             _configuration.RobloxVersionSource = RobloxVersionSource;
             _configuration.RobloxCdnUriOverride = RobloxCdnService.NormalizeCdnUriOverride(RobloxCdnUriOverride);
             RobloxCdnUriOverride = _configuration.RobloxCdnUriOverride;

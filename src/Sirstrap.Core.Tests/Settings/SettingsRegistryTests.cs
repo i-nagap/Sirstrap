@@ -31,6 +31,7 @@ namespace Sirstrap.Core.Tests.Settings
             Assert.Contains("ROBLOX_INSTALLATION_PATH", keys);
             Assert.Contains("ROBLOX_MULTI_INSTANCE", keys);
             Assert.Contains("ROBLOX_PREVIOUS_INSTALLATION_PATH", keys);
+            Assert.Contains("ROBLOX_VERSION_OVERRIDE", keys);
             Assert.Contains("ROBLOX_VERSION_SOURCE", keys);
             Assert.Contains("SIRSTRAP_AUTO_UPDATE", keys);
             Assert.Contains("SIRSTRAP_CHANNEL", keys);

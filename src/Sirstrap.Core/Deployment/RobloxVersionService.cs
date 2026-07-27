@@ -2,11 +2,17 @@ namespace Sirstrap.Core.Deployment
 {
     public sealed class RobloxVersionService(RobloxClientVersionApi robloxApi, SirHurtVersionApi sirHurtApi, IWeaoService weaoService, SirstrapConfiguration sirstrapConfiguration, IPerformanceTelemetry performanceTelemetry) : IRobloxVersionService
     {
-        public async Task<string> GetLatestVersionAsync()
+        public bool HasVersionOverride => !string.IsNullOrWhiteSpace(sirstrapConfiguration.RobloxVersionOverride);
+
+        public Task<string> GetLatestVersionAsync() => GetVersionAsync(allowOverride: true);
+
+        public Task<string> GetSourceVersionAsync() => GetVersionAsync(allowOverride: false);
+
+        private async Task<string> GetVersionAsync(bool allowOverride)
         {
             using ITelemetryScope scope = performanceTelemetry.Measure("version.resolve");
 
-            var (version, source) = await ResolveAsync();
+            var (version, source) = await ResolveAsync(allowOverride);
 
             scope.SetTag("source", source.ToString());
 
@@ -96,8 +102,18 @@ namespace Sirstrap.Core.Deployment
             return (version, VersionResolutionSource.Executor);
         }
 
-        private async Task<(string Version, VersionResolutionSource Source)> ResolveAsync()
+        private async Task<(string Version, VersionResolutionSource Source)> ResolveAsync(bool allowOverride)
         {
+            var versionOverride = (sirstrapConfiguration.RobloxVersionOverride ?? string.Empty).Trim();
+
+            if (allowOverride
+                && !string.IsNullOrEmpty(versionOverride))
+            {
+                Log.Information("[*] Using the Roblox version override {Version}...", versionOverride);
+
+                return (versionOverride, VersionResolutionSource.Override);
+            }
+
             var source = (sirstrapConfiguration.RobloxVersionSource ?? string.Empty).Trim();
 
             if (source.StartsWith(RobloxVersionSources.VersionPrefix, StringComparison.OrdinalIgnoreCase))

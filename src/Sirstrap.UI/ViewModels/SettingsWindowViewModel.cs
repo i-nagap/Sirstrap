@@ -36,6 +36,9 @@
         private string _searchText = string.Empty;
 
         [ObservableProperty]
+        private SettingsTabOption _selectedSettingsTab;
+
+        [ObservableProperty]
         private Settings _settings;
 
         [ObservableProperty]
@@ -49,6 +52,7 @@
             _uninstallService = uninstallService;
             _weaoService = weaoService;
             _cleanupService = cleanupService;
+            _selectedSettingsTab = SettingsTabs[0];
 
             GetFontFamilies();
 
@@ -321,6 +325,14 @@
                 Log.Error(ex, nameof(SaveAsync));
             }
         }
+
+        public IReadOnlyList<SettingsTabOption> SettingsTabs { get; } =
+        [
+            new("All", null),
+            new("Roblox", "Roblox"),
+            new("SirHurt", "SirHurt"),
+            new("Sirstrap", "Sirstrap")
+        ];
 
         public IReadOnlyList<TrayMode> TrayModes { get; } = Enum.GetValues<TrayMode>();
     }
