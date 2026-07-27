@@ -5,9 +5,9 @@ namespace Sirstrap.Core.Launch
         IPathManager pathManager,
         ISingletonManager singletonManager,
         IIncognitoManager incognitoManager,
+        IFastFlagService fastFlagService,
         IRobloxProcessService robloxProcessService,
-        IPerformanceTelemetry performanceTelemetry,
-        IFFlagManager fflagManager) : IRobloxLauncher
+        IPerformanceTelemetry performanceTelemetry) : IRobloxLauncher
     {
         private const string ROBLOX_PLAYER_BETA_EXE = "RobloxPlayerBeta.exe";
 
@@ -29,7 +29,7 @@ namespace Sirstrap.Core.Launch
                 return Fail(scope, "NotFound");
             }
 
-            fflagManager.DeployFFlags(extractionPath);
+            fastFlagService.Apply(extractionPath);
 
             var singletonCaptured = false;
 

@@ -26,7 +26,6 @@ namespace Sirstrap.Core
             services.TryAddSingleton<ISirHurtService, SirHurtService>();
             services.TryAddSingleton<IPathManager, PathManager>();
             services.TryAddSingleton<IIpcService, IpcService>();
-            services.TryAddSingleton<IFFlagManager, FFlagManager>();
 
             return services;
         }
@@ -59,6 +58,7 @@ namespace Sirstrap.Core
 
         private static void AddLaunch(IServiceCollection services)
         {
+            services.TryAddSingleton<IFastFlagService, FastFlagService>();
             services.TryAddSingleton<IRobloxProcessService, RobloxProcessService>();
             services.TryAddSingleton<ISingletonManager, SingletonManager>();
             services.TryAddSingleton<IIncognitoManager, IncognitoManager>();
