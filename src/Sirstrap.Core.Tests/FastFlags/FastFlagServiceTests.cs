@@ -59,6 +59,52 @@ namespace Sirstrap.Core.Tests.FastFlags
         }
 
         [Fact]
+        public void SerializeFlags_WritesTypedJson_SortedByName()
+        {
+            string json = NewService().SerializeFlags(new Dictionary<string, string>
+            {
+                ["ZFlag"] = "true",
+                ["AInt"] = "42",
+                ["   "] = "ignored"
+            });
+
+            Assert.True(json.IndexOf("AInt", StringComparison.Ordinal) < json.IndexOf("ZFlag", StringComparison.Ordinal));
+
+            using JsonDocument document = JsonDocument.Parse(json);
+
+            Assert.Equal(2, document.RootElement.EnumerateObject().Count());
+            Assert.Equal(JsonValueKind.True, document.RootElement.GetProperty("ZFlag").ValueKind);
+            Assert.Equal(JsonValueKind.Number, document.RootElement.GetProperty("AInt").ValueKind);
+        }
+
+        [Fact]
+        public void DeserializeFlags_ReturnsDisplayValues()
+        {
+            IReadOnlyDictionary<string, string>? flags = NewService().DeserializeFlags("""{"FFlagA":true,"DFIntB":123,"FStringC":"hello"}""");
+
+            Assert.NotNull(flags);
+            Assert.Equal("True", flags["FFlagA"]);
+            Assert.Equal("123", flags["DFIntB"]);
+            Assert.Equal("hello", flags["FStringC"]);
+        }
+
+        [Fact]
+        public void DeserializeFlags_RoundTrips_SerializedFlags()
+        {
+            FastFlagService service = NewService();
+            Dictionary<string, string> flags = new() { ["FFlagA"] = "True", ["DFIntB"] = "123" };
+
+            Assert.Equal(flags, service.DeserializeFlags(service.SerializeFlags(flags)));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("not json")]
+        [InlineData("[1,2]")]
+        [InlineData("\"scalar\"")]
+        public void DeserializeFlags_ReturnsNull_WhenJsonIsNotAnObject(string json) => Assert.Null(NewService().DeserializeFlags(json));
+
+        [Fact]
         public void SetFlags_SkipsEntriesWithEmptyNames_AndTrims()
         {
             using TempDirectory temp = new();
