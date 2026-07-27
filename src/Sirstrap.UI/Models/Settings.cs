@@ -8,6 +8,21 @@ namespace Sirstrap.UI.Models
         private readonly IPathManager _pathManager;
 
         [ObservableProperty]
+        private bool _cleanerCleanOnExit;
+
+        [ObservableProperty]
+        private bool _cleanerCleanOnLaunch;
+
+        [ObservableProperty]
+        private bool _cleanerCleanProtectedFiles;
+
+        [ObservableProperty]
+        private bool _cleanerCleanTempFolders = true;
+
+        [ObservableProperty]
+        private bool _cleanerEnabled;
+
+        [ObservableProperty]
         private Color _sirstrapAccentColorValue = Color.Parse("#454ee6");
 
         [ObservableProperty]
@@ -52,24 +67,6 @@ namespace Sirstrap.UI.Models
         [ObservableProperty]
         private string _sirHurtPath = string.Empty;
 
-        [ObservableProperty]
-        private bool _cleanerEnabled;
-
-        [ObservableProperty]
-        private bool _cleanerFirstTimeConfigured;
-
-        [ObservableProperty]
-        private bool _cleanerCleanOnLaunch;
-
-        [ObservableProperty]
-        private bool _cleanerCleanOnExit;
-
-        [ObservableProperty]
-        private bool _cleanerCleanTempFolders = true;
-
-        [ObservableProperty]
-        private bool _cleanerCleanProtectedFiles;
-
         public Settings(SirstrapConfiguration configuration, IFastFlagService fastFlagService, ISettingsService settingsService, IPathManager pathManager, ISirHurtService sirHurtService)
         {
             _configuration = configuration;
@@ -84,6 +81,11 @@ namespace Sirstrap.UI.Models
             if (Color.TryParse(configuration.SirstrapAccentColor, out var accentColor))
                 SirstrapAccentColorValue = accentColor;
 
+            CleanerCleanOnExit = configuration.CleanerCleanOnExit;
+            CleanerCleanOnLaunch = configuration.CleanerCleanOnLaunch;
+            CleanerCleanProtectedFiles = configuration.CleanerCleanProtectedFiles;
+            CleanerCleanTempFolders = configuration.CleanerCleanTempFolders;
+            CleanerEnabled = configuration.CleanerEnabled;
             SirstrapAutoUpdate = configuration.SirstrapAutoUpdate;
             SirstrapChannel = configuration.SirstrapChannel;
             SirstrapFontFamily = configuration.SirstrapFontFamily;
@@ -96,12 +98,6 @@ namespace Sirstrap.UI.Models
             RobloxMultiInstance = configuration.RobloxMultiInstance;
             RobloxVersionSource = configuration.RobloxVersionSource;
             RobloxCdnUriOverride = configuration.RobloxCdnUriOverride;
-            CleanerEnabled = configuration.CleanerEnabled;
-            CleanerFirstTimeConfigured = configuration.CleanerFirstTimeConfigured;
-            CleanerCleanOnLaunch = configuration.CleanerCleanOnLaunch;
-            CleanerCleanOnExit = configuration.CleanerCleanOnExit;
-            CleanerCleanTempFolders = configuration.CleanerCleanTempFolders;
-            CleanerCleanProtectedFiles = configuration.CleanerCleanProtectedFiles;
             RunSirHurtEnabled = File.Exists(Path.Combine(sirHurtPath, "bootstrapper.exe"));
             SirHurtPath = sirHurtPath;
         }
@@ -111,6 +107,11 @@ namespace Sirstrap.UI.Models
             if (!string.Equals(_configuration.RobloxInstallationPath, RobloxInstallationPath, StringComparison.OrdinalIgnoreCase))
                 _configuration.RobloxPreviousInstallationPath = _configuration.RobloxInstallationPath;
 
+            _configuration.CleanerCleanOnExit = CleanerCleanOnExit;
+            _configuration.CleanerCleanOnLaunch = CleanerCleanOnLaunch;
+            _configuration.CleanerCleanProtectedFiles = CleanerCleanProtectedFiles;
+            _configuration.CleanerCleanTempFolders = CleanerCleanTempFolders;
+            _configuration.CleanerEnabled = CleanerEnabled;
             _configuration.SirstrapAccentColor = $"#{SirstrapAccentColorValue.R:x2}{SirstrapAccentColorValue.G:x2}{SirstrapAccentColorValue.B:x2}";
             _configuration.SirstrapAutoUpdate = SirstrapAutoUpdate;
             _configuration.SirstrapChannel = SirstrapChannel;
@@ -130,12 +131,6 @@ namespace Sirstrap.UI.Models
             _configuration.RobloxMultiInstance = RobloxMultiInstance;
             _configuration.RobloxVersionSource = RobloxVersionSource;
             _configuration.RobloxCdnUriOverride = RobloxCdnService.NormalizeCdnUriOverride(RobloxCdnUriOverride);
-            _configuration.CleanerEnabled = CleanerEnabled;
-            _configuration.CleanerFirstTimeConfigured = CleanerFirstTimeConfigured;
-            _configuration.CleanerCleanOnLaunch = CleanerCleanOnLaunch;
-            _configuration.CleanerCleanOnExit = CleanerCleanOnExit;
-            _configuration.CleanerCleanTempFolders = CleanerCleanTempFolders;
-            _configuration.CleanerCleanProtectedFiles = CleanerCleanProtectedFiles;
             RobloxCdnUriOverride = _configuration.RobloxCdnUriOverride;
 
             _settingsService.SaveSettings();

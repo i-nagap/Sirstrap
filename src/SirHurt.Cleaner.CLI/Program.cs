@@ -31,7 +31,6 @@ namespace SirHurt.Cleaner.CLI
 
                 using ServiceProvider serviceProvider = new ServiceCollection()
                     .AddSingleton<IStatusLine>(statusLine)
-                    .AddSingleton<IUserInteraction, ConsoleUserInteraction>()
                     .AddSirstrapCleaner()
                     .BuildServiceProvider();
 

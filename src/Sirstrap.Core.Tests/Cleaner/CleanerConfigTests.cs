@@ -21,12 +21,22 @@ namespace Sirstrap.Core.Tests.Cleaner
         }
 
         [Fact]
+        public void CleanTempFolders_IsSettable()
+        {
+            CleanerConfig config = new() { CleanTempFolders = false };
+
+            Assert.False(config.CleanTempFolders);
+        }
+
+        [Fact]
         public void CleanProtectedFiles_DefaultsToFalse_AndIsSettable()
         {
             CleanerConfig config = new();
+
             Assert.False(config.CleanProtectedFiles);
 
             config.CleanProtectedFiles = true;
+
             Assert.True(config.CleanProtectedFiles);
         }
     }

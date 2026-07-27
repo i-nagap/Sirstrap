@@ -17,7 +17,7 @@ namespace Sirstrap.Core.Cleaner.Steps
             foreach (var processName in runningProcesses)
                 Log.Information("[*] The process {ProcessName} is running and must be closed.", processName);
 
-            if (!userInteraction.Confirm("Roblox and/or SirHurt applications need to be closed before cleaning. Close them now?"))
+            if (!userInteraction.Confirm("Roblox and/or SirHurt applications need to be closed before cleaning. Close them now?", defaultAnswer: true))
             {
                 Log.Warning("[!] The user declined to close the running applications, the cleanup may be incomplete.");
 

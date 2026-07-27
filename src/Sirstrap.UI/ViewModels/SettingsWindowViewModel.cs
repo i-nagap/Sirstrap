@@ -5,10 +5,9 @@
         private const string ANNOUNCEMENTS_URI = "https://raw.githubusercontent.com/massimopaganigh/Sirstrap/main/announcements.txt";
 
         private readonly HttpClient _httpClient;
+        private readonly ICleanupService _cleanupService;
         private readonly IUninstallService _uninstallService;
         private readonly IWeaoService _weaoService;
-        private readonly ICleanupOrchestrator _cleanupOrchestrator;
-        private readonly CleanerConfig _cleanerConfig;
 
         [ObservableProperty]
         private string _announcements = string.Empty;
@@ -40,25 +39,14 @@
         [ObservableProperty]
         private bool _isCleanerRunning;
 
-        [ObservableProperty]
-        private string _cleanerStatusText = string.Empty;
-
-        public SettingsWindowViewModel(
-            HttpClient httpClient,
-            Settings settings,
-            ISirstrapVersion sirstrapVersion,
-            IUninstallService uninstallService,
-            IWeaoService weaoService,
-            ICleanupOrchestrator cleanupOrchestrator,
-            CleanerConfig cleanerConfig)
+        public SettingsWindowViewModel(HttpClient httpClient, Settings settings, ISirstrapVersion sirstrapVersion, IUninstallService uninstallService, IWeaoService weaoService, ICleanupService cleanupService)
         {
             _httpClient = httpClient;
             _settings = settings;
             _currentFullVersion = sirstrapVersion.GetFullVersion();
             _uninstallService = uninstallService;
             _weaoService = weaoService;
-            _cleanupOrchestrator = cleanupOrchestrator;
-            _cleanerConfig = cleanerConfig;
+            _cleanupService = cleanupService;
 
             GetFontFamilies();
 
@@ -211,6 +199,39 @@
         }
 
         [RelayCommand]
+        private async Task RunCleanerAsync()
+        {
+            try
+            {
+                const uint MB_YESNO = 0x00000004;
+                const uint MB_ICONWARNING = 0x00000030;
+                const int IDYES = 6;
+
+                var result = await Task.Run(() =>
+                    MessageBoxW(
+                        IntPtr.Zero,
+                        "This will:\n  • Close every running Roblox and SirHurt application\n  • Delete the Roblox installation, data and registry entries\n  • Delete the Sirstrap data folder (%LocalAppData%\\Sirstrap)\n\nThis action cannot be undone. Are you sure?",
+                        "Run SirHurt Cleaner",
+                        MB_YESNO | MB_ICONWARNING));
+
+                if (result != IDYES)
+                    return;
+
+                IsCleanerRunning = true;
+
+                await Task.Run(() => _cleanupService.Run("manual", Settings.CleanerCleanTempFolders, Settings.CleanerCleanProtectedFiles));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, nameof(RunCleanerAsync));
+            }
+            finally
+            {
+                IsCleanerRunning = false;
+            }
+        }
+
+        [RelayCommand]
         private async Task RunSirHurtAsync()
         {
             try
@@ -238,49 +259,6 @@
             catch (Exception ex)
             {
                 Log.Error(ex, nameof(RunSirHurtAsync));
-            }
-        }
-
-
-        [RelayCommand]
-        private async Task RunCleanerAsync()
-        {
-            if (IsCleanerRunning)
-                return;
-
-            try
-            {
-                IsCleanerRunning = true;
-                CleanerStatusText = "Cleaner running...";
-
-                await Task.Run(() =>
-                {
-                    _cleanerConfig.CleanTempFolders = Settings.CleanerCleanTempFolders;
-                    _cleanerConfig.CleanProtectedFiles = Settings.CleanerCleanProtectedFiles;
-
-                    _cleanupOrchestrator.Run();
-                });
-
-                CleanerStatusText = "Cleanup complete!";
-
-                const uint MB_OK = 0x00000000;
-                const uint MB_ICONINFORMATION = 0x00000040;
-
-                await Task.Run(() =>
-                    MessageBoxW(
-                        IntPtr.Zero,
-                        "SirHurt Cleaner completed successfully.",
-                        "Cleaner Finished",
-                        MB_OK | MB_ICONINFORMATION));
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, nameof(RunCleanerAsync));
-                CleanerStatusText = "Cleanup failed!";
-            }
-            finally
-            {
-                IsCleanerRunning = false;
             }
         }
 

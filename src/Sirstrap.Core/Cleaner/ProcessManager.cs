@@ -4,7 +4,7 @@ namespace Sirstrap.Core.Cleaner
     {
         public bool IsProcessRunning(string processName)
         {
-            var processes = Process.GetProcessesByName(processName);
+            var processes = GetOtherProcessesByName(processName);
 
             foreach (var process in processes)
                 process.Dispose();
@@ -16,7 +16,7 @@ namespace Sirstrap.Core.Cleaner
         {
             try
             {
-                var processes = Process.GetProcessesByName(processName);
+                var processes = GetOtherProcessesByName(processName);
 
                 if (processes.Length == 0)
                     return true;
@@ -52,5 +52,19 @@ namespace Sirstrap.Core.Cleaner
                 return false;
             }
         }
+
+        #region PRIVATE METHODS
+        private static Process[] GetOtherProcessesByName(string processName)
+        {
+            var currentProcessId = Environment.ProcessId;
+            var processes = Process.GetProcessesByName(processName);
+            var others = processes.Where(process => process.Id != currentProcessId).ToArray();
+
+            foreach (var process in processes.Except(others))
+                process.Dispose();
+
+            return others;
+        }
+        #endregion
     }
 }

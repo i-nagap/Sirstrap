@@ -94,42 +94,17 @@ namespace Sirstrap.UI
                     desktop.MainWindow.Opened += OnFirstOpen;
                 }
 
-                var config = Program.Services.GetRequiredService<SirstrapConfiguration>();
+                var configuration = Program.Services.GetRequiredService<SirstrapConfiguration>();
 
-                if (config.CleanerEnabled && config.CleanerCleanOnLaunch)
-                {
-                    Task.Run(() =>
-                    {
-                        try
-                        {
-                            var cleanerConfig = Program.Services.GetRequiredService<CleanerConfig>();
-                            cleanerConfig.CleanTempFolders = config.CleanerCleanTempFolders;
-                            cleanerConfig.CleanProtectedFiles = config.CleanerCleanProtectedFiles;
-                            Program.Services.GetRequiredService<ICleanupOrchestrator>().Run();
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "[!] Failed automated launch cleanup.");
-                        }
-                    });
-                }
+                if (configuration.CleanerEnabled
+                    && configuration.CleanerCleanOnLaunch)
+                    Task.Run(() => RunCleanup(configuration, "launch"));
 
                 desktop.Exit += (_, _) =>
                 {
-                    if (config.CleanerEnabled && config.CleanerCleanOnExit)
-                    {
-                        try
-                        {
-                            var cleanerConfig = Program.Services.GetRequiredService<CleanerConfig>();
-                            cleanerConfig.CleanTempFolders = config.CleanerCleanTempFolders;
-                            cleanerConfig.CleanProtectedFiles = config.CleanerCleanProtectedFiles;
-                            Program.Services.GetRequiredService<ICleanupOrchestrator>().Run();
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "[!] Failed automated exit cleanup.");
-                        }
-                    }
+                    if (configuration.CleanerEnabled
+                        && configuration.CleanerCleanOnExit)
+                        RunCleanup(configuration, "exit");
                 };
             }
 
@@ -203,5 +178,7 @@ namespace Sirstrap.UI
         private static Color DarkenColor(Color color, double factor) => new(color.A, (byte)(color.R * (1 - factor)), (byte)(color.G * (1 - factor)), (byte)(color.B * (1 - factor)));
 
         private static Color LightenColor(Color color, double factor) => new(color.A, (byte)Math.Min(255, color.R + (255 - color.R) * factor), (byte)Math.Min(255, color.G + (255 - color.G) * factor), (byte)Math.Min(255, color.B + (255 - color.B) * factor));
+
+        private static void RunCleanup(SirstrapConfiguration configuration, string trigger) => Program.Services.GetRequiredService<ICleanupService>().Run(trigger, configuration.CleanerCleanTempFolders, configuration.CleanerCleanProtectedFiles);
     }
 }

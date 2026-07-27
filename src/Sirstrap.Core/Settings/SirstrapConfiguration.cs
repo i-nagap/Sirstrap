@@ -4,6 +4,16 @@ namespace Sirstrap.Core.Settings
     {
         public static string GetDefaultInstallationPath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sirstrap", "Versions");
 
+        public bool CleanerCleanOnExit { get; set; }
+
+        public bool CleanerCleanOnLaunch { get; set; }
+
+        public bool CleanerCleanProtectedFiles { get; set; }
+
+        public bool CleanerCleanTempFolders { get; set; } = true;
+
+        public bool CleanerEnabled { get; set; }
+
         public string SirstrapAccentColor { get; set; } = "#454ee6";
 
         public bool SirstrapAutoUpdate { get; set; } = true;
@@ -33,17 +43,5 @@ namespace Sirstrap.Core.Settings
         public string ResolvedRobloxCdnUri { get; set; } = RobloxCdnService.DefaultBaseUri;
 
         public IReadOnlyList<string> ResolvedRobloxCdnUris { get; set; } = [RobloxCdnService.DefaultBaseUri];
-
-        public bool CleanerEnabled { get; set; }
-
-        public bool CleanerFirstTimeConfigured { get; set; }
-
-        public bool CleanerCleanOnLaunch { get; set; }
-
-        public bool CleanerCleanOnExit { get; set; }
-
-        public bool CleanerCleanTempFolders { get; set; } = true;
-
-        public bool CleanerCleanProtectedFiles { get; set; }
     }
 }

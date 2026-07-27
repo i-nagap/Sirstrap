@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Sirstrap.Core.Tests.Cleaner
 {
     public class ProcessManagerTests
@@ -14,6 +16,23 @@ namespace Sirstrap.Core.Tests.Cleaner
         public void TryKillProcess_ReturnsTrue_WhenNoInstancesRunning()
         {
             Assert.True(_manager.TryKillProcess($"sirstrap-nope-{Guid.NewGuid():N}"));
+        }
+
+        [Fact]
+        public void IsProcessRunning_IgnoresTheCurrentProcess()
+        {
+            using var currentProcess = Process.GetCurrentProcess();
+
+            Assert.False(_manager.IsProcessRunning(currentProcess.ProcessName));
+        }
+
+        [Fact]
+        public void TryKillProcess_DoesNotKillTheCurrentProcess()
+        {
+            using var currentProcess = Process.GetCurrentProcess();
+
+            Assert.True(_manager.TryKillProcess(currentProcess.ProcessName));
+            Assert.False(currentProcess.HasExited);
         }
     }
 }
