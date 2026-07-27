@@ -1,0 +1,184 @@
+<Window
+    x:Class="Sirstrap.UI.Views.FastFlagsWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="using:Sirstrap.UI.Behaviors"
+    xmlns:common="using:Sirstrap.UI.Views.Common"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:Sirstrap.UI.Models"
+    xmlns:vm="using:Sirstrap.UI.ViewModels"
+    MaxHeight="500"
+    mc:Ignorable="d"
+    CanResize="False"
+    ExtendClientAreaToDecorationsHint="True"
+    Icon="/Assets/favicon.ico"
+    SizeToContent="WidthAndHeight"
+    Title=""
+    TransparencyLevelHint="AcrylicBlur"
+    WindowStartupLocation="CenterOwner"
+    x:DataType="vm:FastFlagsWindowViewModel">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <common:WavyBackground
+            Grid.Row="0"
+            Grid.RowSpan="5"
+            Margin="-5"
+            IsHitTestVisible="False" />
+        <TextBlock
+            Grid.Row="0"
+            Margin="0,4,0,9"
+            HorizontalAlignment="Center"
+            FontSize="10"
+            Text="Sirstrap" />
+        <TextBlock
+            Grid.Row="1"
+            FontSize="28"
+            FontWeight="UltraBold"
+            Padding="10"
+            Text="FastFlags" />
+        <Border
+            Grid.Row="2"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Background="#80212830"
+            BoxShadow="0 0 10 0 #212830"
+            CornerRadius="5"
+            Padding="5">
+            <Grid Width="600">
+                <ScrollViewer
+                    behaviors:ScrollFade.IsEnabled="True"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,15,47">
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            HorizontalAlignment="Center"
+                            FontSize="10"
+                            IsVisible="{Binding !FastFlags.Count}"
+                            Text="No FastFlags." />
+                        <ItemsControl IsVisible="{Binding !!FastFlags.Count}" ItemsSource="{Binding FastFlags}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="5" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:FastFlagEntry">
+                                    <Grid ColumnDefinitions="*,*,Auto">
+                                        <TextBox
+                                            Grid.Column="0"
+                                            Margin="0,0,5,0"
+                                            BorderThickness="0"
+                                            CornerRadius="999"
+                                            PlaceholderText="Name"
+                                            Text="{Binding Name}" />
+                                        <TextBox
+                                            Grid.Column="1"
+                                            Margin="0,0,5,0"
+                                            BorderThickness="0"
+                                            CornerRadius="999"
+                                            PlaceholderText="Value"
+                                            Text="{Binding Value}" />
+                                        <Button
+                                            Grid.Column="2"
+                                            Width="32"
+                                            Height="32"
+                                            Classes="hover-lift"
+                                            Command="{Binding $parent[Window].((vm:FastFlagsWindowViewModel)DataContext).RemoveFastFlagCommand}"
+                                            CommandParameter="{Binding}"
+                                            CornerRadius="999"
+                                            ToolTip.Tip="Remove FastFlag">
+                                            <Image
+                                                Margin="-5"
+                                                RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                Source="avares://Sirstrap/Assets/remove.png" />
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+                <Border
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Background="#2a323c"
+                    BoxShadow="0 0 10 0 #212830"
+                    CornerRadius="999"
+                    Padding="5">
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        behaviors:StaggeredReveal.IsEnabled="True"
+                        Orientation="Horizontal"
+                        Spacing="5">
+                        <TextBox
+                            Width="160"
+                            Height="32"
+                            VerticalContentAlignment="Center"
+                            BorderThickness="0"
+                            CornerRadius="999"
+                            PlaceholderText="Search"
+                            Text="{Binding SearchText}" />
+                    </StackPanel>
+                </Border>
+                <Border
+                    Margin="0,0,15,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Background="#2a323c"
+                    BoxShadow="0 0 10 0 #212830"
+                    CornerRadius="999"
+                    Padding="5">
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        behaviors:StaggeredReveal.IsEnabled="True"
+                        Orientation="Horizontal"
+                        Spacing="5">
+                        <TextBox
+                            Width="160"
+                            Height="32"
+                            VerticalContentAlignment="Center"
+                            BorderThickness="0"
+                            CornerRadius="999"
+                            PlaceholderText="Name"
+                            Text="{Binding NewFastFlagName}" />
+                        <TextBox
+                            Width="160"
+                            Height="32"
+                            VerticalContentAlignment="Center"
+                            BorderThickness="0"
+                            CornerRadius="999"
+                            PlaceholderText="Value"
+                            Text="{Binding NewFastFlagValue}" />
+                        <Button
+                            Width="32"
+                            Height="32"
+                            Classes="hover-lift"
+                            Command="{Binding AddFastFlagCommand}"
+                            CornerRadius="999"
+                            ToolTip.Tip="Add FastFlag">
+                            <Image
+                                Margin="-5"
+                                RenderOptions.BitmapInterpolationMode="HighQuality"
+                                Source="avares://Sirstrap/Assets/add.png" />
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+        <TextBlock
+            Grid.Row="3"
+            Margin="0,9,0,4"
+            HorizontalAlignment="Center"
+            FontSize="10"
+            Text="{Binding CurrentFullVersion}" />
+    </Grid>
+</Window>

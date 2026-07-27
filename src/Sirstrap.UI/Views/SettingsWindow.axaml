@@ -119,81 +119,18 @@
                                 Text="{Binding RobloxCdnUriOverride}" />
                         </common:SettingsRow>
                         <common:SettingsRow Category="Roblox" Label="Roblox FastFlags:">
-                            <StackPanel
+                            <Button
                                 Width="200"
-                                IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}"
-                                Spacing="5">
-                                <ItemsControl IsVisible="{Binding !!Settings.RobloxFastFlags.Count}" ItemsSource="{Binding Settings.RobloxFastFlags}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Spacing="5" />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="models:FastFlagEntry">
-                                            <Grid ColumnDefinitions="*,*,Auto">
-                                                <TextBox
-                                                    Grid.Column="0"
-                                                    Margin="0,0,5,0"
-                                                    BorderThickness="0"
-                                                    CornerRadius="999"
-                                                    PlaceholderText="Name"
-                                                    Text="{Binding Name}" />
-                                                <TextBox
-                                                    Grid.Column="1"
-                                                    Margin="0,0,5,0"
-                                                    BorderThickness="0"
-                                                    CornerRadius="999"
-                                                    PlaceholderText="Value"
-                                                    Text="{Binding Value}" />
-                                                <Button
-                                                    Grid.Column="2"
-                                                    Width="32"
-                                                    Height="32"
-                                                    Classes="hover-lift"
-                                                    Command="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).RemoveFastFlagCommand}"
-                                                    CommandParameter="{Binding}"
-                                                    CornerRadius="999"
-                                                    ToolTip.Tip="Remove FastFlag">
-                                                    <Image
-                                                        Margin="-5"
-                                                        RenderOptions.BitmapInterpolationMode="HighQuality"
-                                                        Source="avares://Sirstrap/Assets/remove.png" />
-                                                </Button>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <Grid ColumnDefinitions="*,*,Auto">
-                                    <TextBox
-                                        Grid.Column="0"
-                                        Margin="0,0,5,0"
-                                        BorderThickness="0"
-                                        CornerRadius="999"
-                                        PlaceholderText="Name"
-                                        Text="{Binding NewFastFlagName}" />
-                                    <TextBox
-                                        Grid.Column="1"
-                                        Margin="0,0,5,0"
-                                        BorderThickness="0"
-                                        CornerRadius="999"
-                                        PlaceholderText="Value"
-                                        Text="{Binding NewFastFlagValue}" />
-                                    <Button
-                                        Grid.Column="2"
-                                        Width="32"
-                                        Height="32"
-                                        Classes="hover-lift"
-                                        Command="{Binding AddFastFlagCommand}"
-                                        CornerRadius="999"
-                                        ToolTip.Tip="Add FastFlag">
-                                        <Image
-                                            Margin="-5"
-                                            RenderOptions.BitmapInterpolationMode="HighQuality"
-                                            Source="avares://Sirstrap/Assets/add.png" />
-                                    </Button>
-                                </Grid>
-                            </StackPanel>
+                                Height="32"
+                                Classes="hover-lift"
+                                Command="{Binding OpenFastFlagsCommand}"
+                                CornerRadius="999"
+                                IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Text="Manage FastFlags" />
+                            </Button>
                         </common:SettingsRow>
                         <common:SettingsRow Category="Roblox" Label="Roblox installation path:">
                             <Grid Width="200" ColumnDefinitions="*,Auto">
