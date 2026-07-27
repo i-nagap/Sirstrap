@@ -54,8 +54,9 @@
                 <ScrollViewer
                     behaviors:ScrollFade.IsEnabled="True"
                     HorizontalScrollBarVisibility="Disabled"
+                    IsVisible="{Binding !IsRawTabSelected}"
                     VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="0,0,15,47">
+                    <StackPanel Margin="0,47,15,47">
                         <TextBlock
                             Margin="0,6,0,0"
                             HorizontalAlignment="Center"
@@ -70,7 +71,7 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="models:FastFlagEntry">
-                                    <Grid ColumnDefinitions="*,*,Auto">
+                                    <Grid ColumnDefinitions="*,*,Auto" Opacity="{Binding Opacity}">
                                         <TextBox
                                             Grid.Column="0"
                                             Margin="0,0,5,0"
@@ -105,12 +106,69 @@
                         </ItemsControl>
                     </StackPanel>
                 </ScrollViewer>
+                <ScrollViewer
+                    behaviors:ScrollFade.IsEnabled="True"
+                    HorizontalScrollBarVisibility="Disabled"
+                    IsVisible="{Binding IsRawTabSelected}"
+                    VerticalScrollBarVisibility="Auto">
+                    <TextBox
+                        Margin="0,47,15,0"
+                        AcceptsReturn="True"
+                        BorderThickness="0"
+                        CornerRadius="5"
+                        Text="{Binding RawText}"
+                        TextWrapping="Wrap" />
+                </ScrollViewer>
+                <Border
+                    Margin="0,0,15,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Background="#2a323c"
+                    BoxShadow="0 0 10 0 #212830"
+                    CornerRadius="999"
+                    Padding="5">
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        behaviors:StaggeredReveal.IsEnabled="True"
+                        Orientation="Horizontal"
+                        Spacing="5">
+                        <ListBox
+                            Background="Transparent"
+                            BorderThickness="0"
+                            ItemsSource="{Binding FastFlagsTabs}"
+                            Padding="0"
+                            SelectedItem="{Binding SelectedFastFlagsTab}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="5" />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.Styles>
+                                <Style Selector="ListBoxItem">
+                                    <Setter Property="MinHeight" Value="0" />
+                                    <Setter Property="Height" Value="32" />
+                                    <Setter Property="Padding" Value="10,0" />
+                                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                                    <Setter Property="CornerRadius" Value="999" />
+                                </Style>
+                                <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                    <Setter Property="Background" Value="#22ffffff" />
+                                </Style>
+                                <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+                                    <Setter Property="Background" Value="#33ffffff" />
+                                </Style>
+                            </ListBox.Styles>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
                 <Border
                     HorizontalAlignment="Left"
                     VerticalAlignment="Bottom"
                     Background="#2a323c"
                     BoxShadow="0 0 10 0 #212830"
                     CornerRadius="999"
+                    IsVisible="{Binding !IsRawTabSelected}"
                     Padding="5">
                     <StackPanel
                         HorizontalAlignment="Center"
@@ -135,6 +193,7 @@
                     Background="#2a323c"
                     BoxShadow="0 0 10 0 #212830"
                     CornerRadius="999"
+                    IsVisible="{Binding !IsRawTabSelected}"
                     Padding="5">
                     <StackPanel
                         HorizontalAlignment="Center"

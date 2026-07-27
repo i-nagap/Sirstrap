@@ -35,6 +35,30 @@ namespace Sirstrap.Core.FastFlags
             }
         }
 
+        public IReadOnlyDictionary<string, string>? DeserializeFlags(string json)
+        {
+            try
+            {
+                var flags = ParseFlags(json);
+
+                if (flags == null)
+                    return null;
+
+                SortedDictionary<string, string> displayFlags = new(StringComparer.Ordinal);
+
+                foreach (var (name, value) in flags)
+                    displayFlags[name] = ToDisplayValue(value);
+
+                return displayFlags;
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        public string SerializeFlags(IReadOnlyDictionary<string, string> flags) => SerializeFlags(ToTypedFlags(flags));
+
         public IReadOnlyDictionary<string, string> GetFlags(string? fastFlagsFilePath = null)
         {
             SortedDictionary<string, string> flags = new(StringComparer.Ordinal);
@@ -51,18 +75,7 @@ namespace Sirstrap.Core.FastFlags
             {
                 fastFlagsFilePath ??= GetFastFlagsFilePath();
 
-                SortedDictionary<string, object> typedFlags = new(StringComparer.Ordinal);
-
-                foreach (var (name, value) in flags)
-                {
-                    var trimmedName = name.Trim();
-
-                    if (string.IsNullOrEmpty(trimmedName))
-                        continue;
-
-                    typedFlags[trimmedName] = ToTypedValue(value.Trim());
-                }
-
+                var typedFlags = ToTypedFlags(flags);
                 var directory = Path.GetDirectoryName(fastFlagsFilePath);
 
                 if (!string.IsNullOrWhiteSpace(directory))
@@ -81,50 +94,74 @@ namespace Sirstrap.Core.FastFlags
 
         private static SortedDictionary<string, object> LoadFlags(string fastFlagsFilePath)
         {
-            SortedDictionary<string, object> flags = new(StringComparer.Ordinal);
-
             try
             {
                 if (!File.Exists(fastFlagsFilePath))
+                    return new(StringComparer.Ordinal);
+
+                var flags = ParseFlags(File.ReadAllText(fastFlagsFilePath));
+
+                if (flags != null)
                     return flags;
 
-                using var document = JsonDocument.Parse(File.ReadAllText(fastFlagsFilePath));
-
-                if (document.RootElement.ValueKind != JsonValueKind.Object)
-                {
-                    Log.Warning("[!] The FastFlags file {FastFlagsFilePath} is not a JSON object, ignoring it.", fastFlagsFilePath);
-
-                    return flags;
-                }
-
-                foreach (var property in document.RootElement.EnumerateObject())
-                {
-                    object? value = property.Value.ValueKind switch
-                    {
-                        JsonValueKind.String => property.Value.GetString(),
-                        JsonValueKind.True => true,
-                        JsonValueKind.False => false,
-                        JsonValueKind.Number => property.Value.TryGetInt64(out var integerValue) ? integerValue : property.Value.GetDouble(),
-                        _ => null
-                    };
-
-                    if (value == null)
-                    {
-                        Log.Warning("[!] The FastFlag {FastFlagName} has a non-scalar value, ignoring it.", property.Name);
-
-                        continue;
-                    }
-
-                    flags[property.Name] = value;
-                }
+                Log.Warning("[!] The FastFlags file {FastFlagsFilePath} is not a JSON object, ignoring it.", fastFlagsFilePath);
             }
             catch (Exception ex)
             {
                 Log.Warning(ex, "[!] Failed to load the FastFlags from {FastFlagsFilePath}.", fastFlagsFilePath);
-                flags.Clear();
+            }
+
+            return new(StringComparer.Ordinal);
+        }
+
+        private static SortedDictionary<string, object>? ParseFlags(string json)
+        {
+            SortedDictionary<string, object> flags = new(StringComparer.Ordinal);
+
+            using var document = JsonDocument.Parse(json);
+
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+                return null;
+
+            foreach (var property in document.RootElement.EnumerateObject())
+            {
+                object? value = property.Value.ValueKind switch
+                {
+                    JsonValueKind.String => property.Value.GetString(),
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    JsonValueKind.Number => property.Value.TryGetInt64(out var integerValue) ? integerValue : property.Value.GetDouble(),
+                    _ => null
+                };
+
+                if (value == null)
+                {
+                    Log.Warning("[!] The FastFlag {FastFlagName} has a non-scalar value, ignoring it.", property.Name);
+
+                    continue;
+                }
+
+                flags[property.Name] = value;
             }
 
             return flags;
+        }
+
+        private static SortedDictionary<string, object> ToTypedFlags(IReadOnlyDictionary<string, string> flags)
+        {
+            SortedDictionary<string, object> typedFlags = new(StringComparer.Ordinal);
+
+            foreach (var (name, value) in flags)
+            {
+                var trimmedName = name.Trim();
+
+                if (string.IsNullOrEmpty(trimmedName))
+                    continue;
+
+                typedFlags[trimmedName] = ToTypedValue(value.Trim());
+            }
+
+            return typedFlags;
         }
 
         private static string SerializeFlags(SortedDictionary<string, object> flags)
