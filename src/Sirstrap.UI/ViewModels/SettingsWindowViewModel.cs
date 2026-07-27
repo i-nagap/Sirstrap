@@ -6,10 +6,15 @@
         private const string ANNOUNCEMENTS_URI = "https://raw.githubusercontent.com/massimopaganigh/Sirstrap/main/announcements.txt";
 #pragma warning restore S1075
 
+        private static readonly SettingsTabOption _fastFlagsTab = new("FastFlags", "FastFlags", HasSubTabs: true);
+
         private readonly HttpClient _httpClient;
         private readonly ICleanupService _cleanupService;
+        private readonly IFastFlagService _fastFlagService;
         private readonly IUninstallService _uninstallService;
         private readonly IWeaoService _weaoService;
+
+        private bool _isRefreshingRawText;
 
         [ObservableProperty]
         private string _announcements = string.Empty;
@@ -18,7 +23,19 @@
         private string _currentFullVersion;
 
         [ObservableProperty]
+        private ObservableCollection<FastFlagEntry> _fastFlags = [];
+
+        [ObservableProperty]
         private ObservableCollection<string> _fontFamilies = [];
+
+        [ObservableProperty]
+        private string _newFastFlagName = string.Empty;
+
+        [ObservableProperty]
+        private string _newFastFlagValue = string.Empty;
+
+        [ObservableProperty]
+        private string _rawText = string.Empty;
 
         [ObservableProperty]
         private ObservableCollection<VersionSourceOption> _versionSources = [];
@@ -30,6 +47,16 @@
         private string _searchText = string.Empty;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsFastFlagsListVisible))]
+        [NotifyPropertyChangedFor(nameof(IsFastFlagsRawVisible))]
+        [NotifyPropertyChangedFor(nameof(IsSearchVisible))]
+        private FastFlagsTab _selectedFastFlagsTab = FastFlagsTab.List;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsFastFlagsTabSelected))]
+        [NotifyPropertyChangedFor(nameof(IsFastFlagsListVisible))]
+        [NotifyPropertyChangedFor(nameof(IsFastFlagsRawVisible))]
+        [NotifyPropertyChangedFor(nameof(IsSearchVisible))]
         private SettingsTabOption _selectedSettingsTab;
 
         [ObservableProperty]
@@ -38,7 +65,7 @@
         [ObservableProperty]
         private bool _isCleanerRunning;
 
-        public SettingsWindowViewModel(HttpClient httpClient, Settings settings, ISirstrapVersion sirstrapVersion, IUninstallService uninstallService, IWeaoService weaoService, ICleanupService cleanupService)
+        public SettingsWindowViewModel(HttpClient httpClient, Settings settings, ISirstrapVersion sirstrapVersion, IUninstallService uninstallService, IWeaoService weaoService, ICleanupService cleanupService, IFastFlagService fastFlagService)
         {
             _httpClient = httpClient;
             _settings = settings;
@@ -46,13 +73,23 @@
             _uninstallService = uninstallService;
             _weaoService = weaoService;
             _cleanupService = cleanupService;
+            _fastFlagService = fastFlagService;
             _selectedSettingsTab = SettingsTabs[0];
 
             GetFontFamilies();
+            ApplyFastFlagsSearch();
 
             _ = LoadAnnouncementsAsync();
             _ = LoadVersionSourcesAsync();
         }
+
+        public bool IsFastFlagsTabSelected => SelectedSettingsTab == _fastFlagsTab;
+
+        public bool IsFastFlagsListVisible => IsFastFlagsTabSelected && SelectedFastFlagsTab == FastFlagsTab.List;
+
+        public bool IsFastFlagsRawVisible => IsFastFlagsTabSelected && SelectedFastFlagsTab == FastFlagsTab.Raw;
+
+        public bool IsSearchVisible => !IsFastFlagsRawVisible;
 
         private async Task LoadAnnouncementsAsync()
         {
@@ -87,23 +124,98 @@
             }
         }
 
+        partial void OnRawTextChanged(string value)
+        {
+            if (_isRefreshingRawText)
+                return;
+
+            var flags = string.IsNullOrWhiteSpace(value) ? new Dictionary<string, string>() : _fastFlagService.DeserializeFlags(value);
+
+            if (flags == null)
+                return;
+
+            Settings.RobloxFastFlags = [.. flags.Select(flag => new FastFlagEntry { Name = flag.Key, Value = flag.Value })];
+
+            ApplyFastFlagsSearch();
+        }
+
+        partial void OnSearchTextChanged(string value) => ApplyFastFlagsSearch();
+
+        partial void OnSelectedFastFlagsTabChanged(FastFlagsTab value)
+        {
+            if (value != FastFlagsTab.Raw)
+                return;
+
+            _isRefreshingRawText = true;
+
+            RawText = _fastFlagService.SerializeFlags(GetFastFlags());
+
+            _isRefreshingRawText = false;
+        }
+
         partial void OnSelectedVersionSourceChanged(VersionSourceOption? value)
         {
             if (value != null)
                 Settings.RobloxVersionSource = value.Value;
         }
 
-        [RelayCommand]
-        private void OpenFastFlags()
+        private void ApplyFastFlagsSearch()
         {
-            try
-            {
-                new FastFlagsWindow { DataContext = ActivatorUtilities.CreateInstance<FastFlagsWindowViewModel>(Program.Services, Settings) }.ShowDialog(GetSpecificWindow<SettingsWindow>()!);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, nameof(OpenFastFlags));
-            }
+            var term = SearchText.Trim();
+            var hasTerm = !string.IsNullOrEmpty(term);
+
+            foreach (var entry in Settings.RobloxFastFlags)
+                entry.Opacity = !hasTerm || Matches(entry, term) ? 1 : 0.4;
+
+            IEnumerable<FastFlagEntry> entries = Settings.RobloxFastFlags;
+
+            if (hasTerm)
+                entries = entries.OrderByDescending(entry => Matches(entry, term));
+
+            FastFlags = [.. entries];
+        }
+
+        private Dictionary<string, string> GetFastFlags()
+        {
+            Dictionary<string, string> flags = new(StringComparer.Ordinal);
+
+            foreach (var entry in Settings.RobloxFastFlags.Where(entry => !string.IsNullOrWhiteSpace(entry.Name)))
+                flags[entry.Name.Trim()] = entry.Value;
+
+            return flags;
+        }
+
+        private static bool Matches(FastFlagEntry entry, string term) => entry.Name.Contains(term, StringComparison.OrdinalIgnoreCase);
+
+        [RelayCommand]
+        private void AddFastFlag()
+        {
+            if (string.IsNullOrWhiteSpace(NewFastFlagName))
+                return;
+
+            FastFlagEntry entry = new() { Name = NewFastFlagName.Trim(), Value = NewFastFlagValue };
+
+            var index = 0;
+
+            while (index < Settings.RobloxFastFlags.Count
+                && string.Compare(Settings.RobloxFastFlags[index].Name, entry.Name, StringComparison.Ordinal) < 0)
+                index++;
+
+            Settings.RobloxFastFlags.Insert(index, entry);
+
+            NewFastFlagName = string.Empty;
+            NewFastFlagValue = string.Empty;
+            SearchText = string.Empty;
+
+            ApplyFastFlagsSearch();
+        }
+
+        [RelayCommand]
+        private void RemoveFastFlag(FastFlagEntry entry)
+        {
+            Settings.RobloxFastFlags.Remove(entry);
+
+            ApplyFastFlagsSearch();
         }
 
         [RelayCommand]
@@ -310,9 +422,12 @@
             }
         }
 
+        public IReadOnlyList<FastFlagsTab> FastFlagsTabs { get; } = Enum.GetValues<FastFlagsTab>();
+
         public IReadOnlyList<SettingsTabOption> SettingsTabs { get; } =
         [
             new("All", null),
+            _fastFlagsTab,
             new("Roblox", "Roblox"),
             new("SirHurt", "SirHurt"),
             new("Sirstrap", "Sirstrap")

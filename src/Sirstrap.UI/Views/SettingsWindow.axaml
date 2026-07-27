@@ -54,6 +54,7 @@
                 <ScrollViewer
                     behaviors:ScrollFade.IsEnabled="True"
                     HorizontalScrollBarVisibility="Disabled"
+                    IsVisible="{Binding !IsFastFlagsTabSelected}"
                     VerticalScrollBarVisibility="Auto">
                     <common:SettingsList
                         Margin="0,47,15,47"
@@ -117,20 +118,6 @@
                                 CornerRadius="999"
                                 DataContext="{Binding Settings}"
                                 Text="{Binding RobloxCdnUriOverride}" />
-                        </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Roblox FastFlags:">
-                            <Button
-                                Width="200"
-                                Height="32"
-                                Classes="hover-lift"
-                                Command="{Binding OpenFastFlagsCommand}"
-                                CornerRadius="999"
-                                IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}">
-                                <TextBlock
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Text="Manage FastFlags" />
-                            </Button>
                         </common:SettingsRow>
                         <common:SettingsRow Category="Roblox" Label="Roblox installation path:">
                             <Grid Width="200" ColumnDefinitions="*,Auto">
@@ -307,6 +294,103 @@
                         </common:SettingsRow>
                     </common:SettingsList>
                 </ScrollViewer>
+                <ScrollViewer
+                    behaviors:ScrollFade.IsEnabled="True"
+                    HorizontalScrollBarVisibility="Disabled"
+                    IsVisible="{Binding IsFastFlagsListVisible}"
+                    VerticalScrollBarVisibility="Auto">
+                    <StackPanel
+                        Width="500"
+                        Margin="0,47,15,47"
+                        IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}"
+                        Spacing="5">
+                        <ItemsControl ItemsSource="{Binding FastFlags}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="5" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:FastFlagEntry">
+                                    <Grid ColumnDefinitions="*,*,Auto" Opacity="{Binding Opacity}">
+                                        <TextBox
+                                            Grid.Column="0"
+                                            Margin="0,0,5,0"
+                                            BorderThickness="0"
+                                            CornerRadius="999"
+                                            PlaceholderText="Name"
+                                            Text="{Binding Name}" />
+                                        <TextBox
+                                            Grid.Column="1"
+                                            Margin="0,0,5,0"
+                                            BorderThickness="0"
+                                            CornerRadius="999"
+                                            PlaceholderText="Value"
+                                            Text="{Binding Value}" />
+                                        <Button
+                                            Grid.Column="2"
+                                            Width="32"
+                                            Height="32"
+                                            Classes="hover-lift"
+                                            Command="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).RemoveFastFlagCommand}"
+                                            CommandParameter="{Binding}"
+                                            CornerRadius="999"
+                                            ToolTip.Tip="Remove FastFlag">
+                                            <Image
+                                                Margin="-5"
+                                                RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                Source="avares://Sirstrap/Assets/remove.png" />
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Grid ColumnDefinitions="*,*,Auto">
+                            <TextBox
+                                Grid.Column="0"
+                                Margin="0,0,5,0"
+                                BorderThickness="0"
+                                CornerRadius="999"
+                                PlaceholderText="Name"
+                                Text="{Binding NewFastFlagName}" />
+                            <TextBox
+                                Grid.Column="1"
+                                Margin="0,0,5,0"
+                                BorderThickness="0"
+                                CornerRadius="999"
+                                PlaceholderText="Value"
+                                Text="{Binding NewFastFlagValue}" />
+                            <Button
+                                Grid.Column="2"
+                                Width="32"
+                                Height="32"
+                                Classes="hover-lift"
+                                Command="{Binding AddFastFlagCommand}"
+                                CornerRadius="999"
+                                ToolTip.Tip="Add FastFlag">
+                                <Image
+                                    Margin="-5"
+                                    RenderOptions.BitmapInterpolationMode="HighQuality"
+                                    Source="avares://Sirstrap/Assets/add.png" />
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+                <ScrollViewer
+                    behaviors:ScrollFade.IsEnabled="True"
+                    HorizontalScrollBarVisibility="Disabled"
+                    IsVisible="{Binding IsFastFlagsRawVisible}"
+                    VerticalScrollBarVisibility="Auto">
+                    <TextBox
+                        Width="500"
+                        Margin="0,47,15,47"
+                        AcceptsReturn="True"
+                        BorderThickness="0"
+                        CornerRadius="5"
+                        IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}"
+                        Text="{Binding RawText}"
+                        TextWrapping="Wrap" />
+                </ScrollViewer>
                 <Border
                     Margin="0,0,15,0"
                     HorizontalAlignment="Center"
@@ -334,7 +418,44 @@
                             </ListBox.ItemsPanel>
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="models:SettingsTabOption">
-                                    <TextBlock Text="{Binding Display}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+                                        <Panel IsVisible="{Binding HasSubTabs}">
+                                            <StackPanel
+                                                IsVisible="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).IsFastFlagsTabSelected}"
+                                                Orientation="Horizontal"
+                                                Spacing="5">
+                                                <ListBox
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    ItemsSource="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).FastFlagsTabs}"
+                                                    Padding="0"
+                                                    SelectedItem="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).SelectedFastFlagsTab}">
+                                                    <ListBox.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <StackPanel Orientation="Horizontal" Spacing="5" />
+                                                        </ItemsPanelTemplate>
+                                                    </ListBox.ItemsPanel>
+                                                    <ListBox.Styles>
+                                                        <Style Selector="ListBoxItem">
+                                                            <Setter Property="MinHeight" Value="0" />
+                                                            <Setter Property="Height" Value="22" />
+                                                            <Setter Property="Padding" Value="8,0" />
+                                                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                                                            <Setter Property="CornerRadius" Value="999" />
+                                                            <Setter Property="FontSize" Value="10" />
+                                                        </Style>
+                                                        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                                            <Setter Property="Background" Value="#22ffffff" />
+                                                        </Style>
+                                                        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+                                                            <Setter Property="Background" Value="#33ffffff" />
+                                                        </Style>
+                                                    </ListBox.Styles>
+                                                </ListBox>
+                                            </StackPanel>
+                                        </Panel>
+                                    </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                             <ListBox.Styles>
@@ -361,6 +482,7 @@
                     Background="#2a323c"
                     BoxShadow="0 0 10 0 #212830"
                     CornerRadius="999"
+                    IsVisible="{Binding IsSearchVisible}"
                     Padding="5">
                     <StackPanel
                         HorizontalAlignment="Center"
