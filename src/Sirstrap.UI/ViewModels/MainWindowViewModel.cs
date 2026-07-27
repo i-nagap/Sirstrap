@@ -13,9 +13,11 @@ namespace Sirstrap.UI.ViewModels
         private readonly ISirHurtService _sirHurtService;
         private readonly IWeaoService _weaoService;
 
+#pragma warning disable S1075 // fixed Sirstrap project endpoints, not deployment specific paths
         private const string GITHUB_PROFILE_URI = "https://github.com/massimopaganigh";
         private const string LOGO_IMAGE_URI = "https://raw.githubusercontent.com/massimopaganigh/Sirstrap/main/images/SirstrapIcon.png";
         private const string PROFILE_IMAGE_URI = "https://github.com/massimopaganigh.png";
+#pragma warning restore S1075
 
         [ObservableProperty]
         private string _currentFullVersion = string.Empty;

@@ -16,6 +16,7 @@ namespace Sirstrap.Core
             AddSettings(services);
             AddWeao(services);
             AddCdn(services);
+            AddCleaner(services);
             AddDeployment(services);
             AddLaunch(services);
             AddActivity(services);
@@ -44,6 +45,12 @@ namespace Sirstrap.Core
             services.TryAddSingleton<ICdnResolver, CdnResolver>();
         }
 
+        private static void AddCleaner(IServiceCollection services)
+        {
+            services.AddSirstrapCleaner();
+            services.TryAddSingleton<ICleanupService, CleanupService>();
+        }
+
         private static void AddDeployment(IServiceCollection services)
         {
             services.TryAddSingleton<IRobloxUriFactory, RobloxUriFactory>();
@@ -57,6 +64,7 @@ namespace Sirstrap.Core
 
         private static void AddLaunch(IServiceCollection services)
         {
+            services.TryAddSingleton<IFastFlagService, FastFlagService>();
             services.TryAddSingleton<IRobloxProcessService, RobloxProcessService>();
             services.TryAddSingleton<ISingletonManager, SingletonManager>();
             services.TryAddSingleton<IIncognitoManager, IncognitoManager>();

@@ -8,14 +8,14 @@
 
         public event EventHandler<string>? MessageReceived;
 
-        private async Task HandleClientAsync(NamedPipeServerStream pipeServer)
+        private async Task HandleClientAsync(NamedPipeServerStream pipeServer, CancellationToken cancellationToken)
         {
             try
             {
                 Log.Debug("[*] Handling an IPC client connection...");
 
                 var lengthBuffer = new byte[4];
-                var bytesRead = await pipeServer.ReadAsync(lengthBuffer.AsMemory(0, 4));
+                var bytesRead = await pipeServer.ReadAsync(lengthBuffer.AsMemory(0, 4), cancellationToken);
 
                 if (bytesRead != 4)
                     return;
@@ -31,7 +31,7 @@
 
                 while (totalBytesRead < messageLength)
                 {
-                    bytesRead = await pipeServer.ReadAsync(messageBuffer.AsMemory(totalBytesRead, messageLength - totalBytesRead));
+                    bytesRead = await pipeServer.ReadAsync(messageBuffer.AsMemory(totalBytesRead, messageLength - totalBytesRead), cancellationToken);
 
                     if (bytesRead == 0)
                         return;
@@ -76,7 +76,7 @@
 
                     pipeServer = null;
 
-                    _ = Task.Run(async () => await HandleClientAsync(connectedPipe), cancellationToken);
+                    _ = Task.Run(async () => await HandleClientAsync(connectedPipe, cancellationToken), cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {

@@ -21,7 +21,9 @@ namespace Sirstrap.Core.Cleaner.Steps
         #region PRIVATE METHODS
         private void CleanCurrentUserTempFolder()
         {
+#pragma warning disable S5443 // cleaning the shared temporary folder is the purpose of this step
             var tempPath = Path.GetTempPath();
+#pragma warning restore S5443
 
             Log.Information("[*] Cleaning the temporary files for the current user: {TempPath}...", tempPath);
             CleanTempFolder(tempPath);

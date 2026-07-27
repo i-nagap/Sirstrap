@@ -4,6 +4,16 @@ namespace Sirstrap.Core.Settings
     {
         public static string GetDefaultInstallationPath() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sirstrap", "Versions");
 
+        public bool CleanerCleanOnExit { get; set; }
+
+        public bool CleanerCleanOnLaunch { get; set; }
+
+        public bool CleanerCleanProtectedFiles { get; set; }
+
+        public bool CleanerCleanTempFolders { get; set; } = true;
+
+        public bool CleanerEnabled { get; set; }
+
         public string SirstrapAccentColor { get; set; } = "#454ee6";
 
         public bool SirstrapAutoUpdate { get; set; } = true;
@@ -16,6 +26,8 @@ namespace Sirstrap.Core.Settings
 
         public TrayMode SirstrapTrayMode { get; set; } = TrayMode.None;
 
+        public bool RobloxFastFlagsEnabled { get; set; } = true;
+
         public bool RobloxIncognito { get; set; }
 
         public string RobloxInstallationPath { get; set; } = GetDefaultInstallationPath();
@@ -23,6 +35,8 @@ namespace Sirstrap.Core.Settings
         public bool RobloxMultiInstance { get; set; } = true;
 
         public string RobloxPreviousInstallationPath { get; set; } = string.Empty;
+
+        public string RobloxVersionOverride { get; set; } = string.Empty;
 
         public string RobloxVersionSource { get; set; } = RobloxVersionSources.SirHurt;
 

@@ -4,6 +4,8 @@ namespace Sirstrap.UI.Views.Common
 {
     public class SettingsList : StackPanel
     {
+        public static readonly StyledProperty<string?> CategoryProperty = AvaloniaProperty.Register<SettingsList, string?>(nameof(Category));
+
         public static readonly StyledProperty<string?> SearchTermProperty = AvaloniaProperty.Register<SettingsList, string?>(nameof(SearchTerm));
 
         private List<Control>? _baseline;
@@ -12,15 +14,22 @@ namespace Sirstrap.UI.Views.Common
         {
             base.OnAttachedToVisualTree(e);
 
-            ApplySearch();
+            ApplyFilters();
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
 
-            if (change.Property == SearchTermProperty)
-                ApplySearch();
+            if (change.Property == CategoryProperty
+                || change.Property == SearchTermProperty)
+                ApplyFilters();
+        }
+
+        public string? Category
+        {
+            get => GetValue(CategoryProperty);
+            set => SetValue(CategoryProperty, value);
         }
 
         public string? SearchTerm
@@ -29,13 +38,14 @@ namespace Sirstrap.UI.Views.Common
             set => SetValue(SearchTermProperty, value);
         }
 
-        private void ApplySearch()
+        private void ApplyFilters()
         {
             if (Children.Count == 0)
                 return;
 
             _baseline ??= [.. Children.Cast<Control>()];
 
+            var category = Category;
             var term = SearchTerm;
             var hasTerm = !string.IsNullOrWhiteSpace(term);
             var ordered = hasTerm ? [.. _baseline.OrderByDescending(x => Matches(x, term!))] : _baseline;
@@ -44,6 +54,7 @@ namespace Sirstrap.UI.Views.Common
             {
                 var child = ordered[i];
 
+                child.IsVisible = BelongsTo(child, category);
                 child.Opacity = !hasTerm || Matches(child, term!) ? 1 : 0.4;
 
                 var currentIndex = Children.IndexOf(child);
@@ -57,6 +68,8 @@ namespace Sirstrap.UI.Views.Common
             if (scrollViewer != null)
                 scrollViewer.Offset = scrollViewer.Offset.WithY(0);
         }
+
+        private static bool BelongsTo(Control control, string? category) => string.IsNullOrWhiteSpace(category) || (control is SettingsRow row && string.Equals(row.Category, category, StringComparison.OrdinalIgnoreCase));
 
         private static bool Matches(Control control, string term) => control is SettingsRow row && (row.Label?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false);
     }

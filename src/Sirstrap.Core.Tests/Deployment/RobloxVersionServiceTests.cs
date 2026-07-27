@@ -29,6 +29,25 @@ namespace Sirstrap.Core.Tests.Deployment
         }
 
         [Fact]
+        public async Task GetLatestVersionAsync_ReturnsOverride_WhenVersionOverrideIsSet()
+        {
+            SirstrapConfiguration config = new() { RobloxVersionSource = RobloxVersionSources.Roblox, RobloxVersionOverride = " overridden-version " };
+            RobloxVersionService service = NewService(config, RobloxClient("roblox-version"), SirHurtClient("sirhurt", 1), out _);
+
+            Assert.True(service.HasVersionOverride);
+            Assert.Equal("overridden-version", await service.GetLatestVersionAsync());
+        }
+
+        [Fact]
+        public async Task GetSourceVersionAsync_IgnoresVersionOverride()
+        {
+            SirstrapConfiguration config = new() { RobloxVersionSource = RobloxVersionSources.Roblox, RobloxVersionOverride = "overridden-version" };
+            RobloxVersionService service = NewService(config, RobloxClient("roblox-version"), SirHurtClient("sirhurt", 1), out _);
+
+            Assert.Equal("roblox-version", await service.GetSourceVersionAsync());
+        }
+
+        [Fact]
         public async Task GetLatestVersionAsync_UsesRobloxApi_WhenSourceIsRoblox()
         {
             SirstrapConfiguration config = new() { RobloxVersionSource = RobloxVersionSources.Roblox };

@@ -36,6 +36,18 @@ namespace Sirstrap.Core.Tests.Support
         }
     }
 
+    public sealed class FakeCleanupOrchestrator(Action? onRun = null) : ICleanupOrchestrator
+    {
+        public int Runs { get; private set; }
+
+        public void Run()
+        {
+            Runs++;
+
+            onRun?.Invoke();
+        }
+    }
+
     public sealed class FakeFolderDeleter : IFolderDeleter
     {
         public List<string> Deleted { get; } = [];

@@ -26,6 +26,8 @@ namespace Sirstrap.Core.Deployment
                 scope.SetTag("channel", configuration.ChannelName);
                 scope.SetTag("binaryType", configuration.BinaryType);
 
+                var overridden = string.IsNullOrEmpty(configuration.VersionHash) && robloxVersionService.HasVersionOverride;
+
                 if (!await ResolveVersionAsync(configuration).ConfigureAwait(false))
                 {
                     scope.MarkFailed();
@@ -35,29 +37,18 @@ namespace Sirstrap.Core.Deployment
                     return;
                 }
 
-                if (IsAlreadyInstalled(configuration))
+                string outcome;
+
+                try
                 {
-                    Log.Information("[*] The version {VersionHash} is already installed.", configuration.VersionHash);
-
-                    performanceTelemetry.RecordCounter("sirstrap.execute.cache_hit", new Dictionary<string, object> { ["binaryType"] = configuration.BinaryType });
-
-                    if (LaunchApplication(configuration))
-                    {
-                        performanceTelemetry.RecordCounter("sirstrap.execute.outcome", new Dictionary<string, object> { ["value"] = "Cached" });
-
-                        return;
-                    }
+                    outcome = await DeployAsync(configuration).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (overridden)
+                {
+                    outcome = await FallBackToVersionSourceAsync(configuration, ex).ConfigureAwait(false);
                 }
 
-                await cdnResolver.ResolveAsync(configuration).ConfigureAwait(false);
-
-                pathManager.ClearCacheDirectory();
-
-                await DownloadArchiveAsync(configuration).ConfigureAwait(false);
-
-                InstallAndLaunchApplication(configuration);
-
-                performanceTelemetry.RecordCounter("sirstrap.execute.outcome", new Dictionary<string, object> { ["value"] = "Success" });
+                performanceTelemetry.RecordCounter("sirstrap.execute.outcome", new Dictionary<string, object> { ["value"] = outcome });
             }
             catch (Exception ex)
             {
@@ -69,6 +60,43 @@ namespace Sirstrap.Core.Deployment
 
                 Environment.ExitCode = 1;
             }
+        }
+
+        private async Task<string> DeployAsync(Configuration configuration)
+        {
+            if (IsAlreadyInstalled(configuration))
+            {
+                Log.Information("[*] The version {VersionHash} is already installed.", configuration.VersionHash);
+
+                performanceTelemetry.RecordCounter("sirstrap.execute.cache_hit", new Dictionary<string, object> { ["binaryType"] = configuration.BinaryType });
+
+                if (LaunchApplication(configuration))
+                    return "Cached";
+            }
+
+            await cdnResolver.ResolveAsync(configuration).ConfigureAwait(false);
+
+            pathManager.ClearCacheDirectory();
+
+            await DownloadArchiveAsync(configuration).ConfigureAwait(false);
+
+            InstallAndLaunchApplication(configuration);
+
+            return "Success";
+        }
+
+        private async Task<string> FallBackToVersionSourceAsync(Configuration configuration, Exception exception)
+        {
+            Log.Error(exception, "[!] Failed to deploy the Roblox version override {VersionHash}, falling back to the Roblox version source...", configuration.VersionHash);
+
+            performanceTelemetry.RecordCounter("sirstrap.execute.version_override_fallback");
+
+            configuration.VersionHash = await robloxVersionService.GetSourceVersionAsync().ConfigureAwait(false);
+
+            if (string.IsNullOrEmpty(configuration.VersionHash))
+                throw new InvalidOperationException("An error occurred while resolving the Roblox version from the Roblox version source.", exception);
+
+            return await DeployAsync(configuration).ConfigureAwait(false);
         }
 
         private async Task DownloadArchiveAsync(Configuration configuration)

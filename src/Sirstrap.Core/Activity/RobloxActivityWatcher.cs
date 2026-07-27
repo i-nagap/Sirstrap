@@ -45,7 +45,7 @@ namespace Sirstrap.Core.Activity
             try
             {
                 _cancellationTokenSource?.Cancel();
-                _logReadingTask?.Wait(TimeSpan.FromSeconds(5));
+                _logReadingTask?.Wait(TimeSpan.FromSeconds(5), CancellationToken.None);
 
                 _logReadingTask = null;
 
@@ -78,7 +78,7 @@ namespace Sirstrap.Core.Activity
             try
             {
                 _cancellationTokenSource?.Cancel();
-                _logReadingTask?.Wait(TimeSpan.FromSeconds(2));
+                _logReadingTask?.Wait(TimeSpan.FromSeconds(2), CancellationToken.None);
                 StartReading(e.FullPath);
             }
             catch (Exception ex)
@@ -124,7 +124,10 @@ namespace Sirstrap.Core.Activity
         private void StartReading(string logFilePath)
         {
             _cancellationTokenSource = new CancellationTokenSource();
-            _logReadingTask = Task.Run(() => ReadLogFileAsync(logFilePath, _cancellationTokenSource.Token));
+
+            var cancellationToken = _cancellationTokenSource.Token;
+
+            _logReadingTask = Task.Run(() => ReadLogFileAsync(logFilePath, cancellationToken), cancellationToken);
         }
 
         private async Task UpdateServerLocationAsync(string ipAddress)

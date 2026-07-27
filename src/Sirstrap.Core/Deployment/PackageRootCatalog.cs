@@ -69,13 +69,13 @@ namespace Sirstrap.Core.Deployment
             { "extracontent-places.zip", "ExtraContent/places/" }
         };
 
-        public static bool TryGetRoot(string package, out string root)
+        public static bool TryGetRoot(string package, [MaybeNullWhen(false)] out string root)
         {
             Dictionary<string, string> roots = package.Equals("RobloxStudio.zip", StringComparison.OrdinalIgnoreCase)
                 ? _studioRoots
                 : _playerRoots;
 
-            return roots.TryGetValue(package, out root!);
+            return roots.TryGetValue(package, out root);
         }
     }
 }

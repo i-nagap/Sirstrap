@@ -14,15 +14,26 @@ namespace Sirstrap.Core.Tests.Support
         }
     }
 
-    public sealed class FakeRobloxVersionService(string version) : IRobloxVersionService
+    public sealed class FakeRobloxVersionService(string version, string? sourceVersion = null) : IRobloxVersionService
     {
         public int Calls { get; private set; }
+
+        public int SourceCalls { get; private set; }
+
+        public bool HasVersionOverride { get; init; }
 
         public Task<string> GetLatestVersionAsync()
         {
             Calls++;
 
             return Task.FromResult(version);
+        }
+
+        public Task<string> GetSourceVersionAsync()
+        {
+            SourceCalls++;
+
+            return Task.FromResult(sourceVersion ?? version);
         }
     }
 
@@ -32,9 +43,13 @@ namespace Sirstrap.Core.Tests.Support
 
         public int MacCalls { get; private set; }
 
+        public string? FailingVersionHash { get; init; }
+
         public Task DownloadMacArchiveAsync(Configuration configuration)
         {
             MacCalls++;
+
+            ThrowIfFailing(configuration);
 
             return Task.CompletedTask;
         }
@@ -43,7 +58,15 @@ namespace Sirstrap.Core.Tests.Support
         {
             WindowsCalls++;
 
+            ThrowIfFailing(configuration);
+
             return Task.CompletedTask;
+        }
+
+        private void ThrowIfFailing(Configuration configuration)
+        {
+            if (configuration.VersionHash.Equals(FailingVersionHash, StringComparison.Ordinal))
+                throw new InvalidOperationException($"An error occurred while downloading packages for the version: {configuration.VersionHash}.");
         }
     }
 

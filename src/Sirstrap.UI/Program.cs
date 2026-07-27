@@ -27,6 +27,8 @@ namespace Sirstrap.UI
             Args = args.Length > 0 ? args : null;
 
             Services = new ServiceCollection()
+                .AddSingleton<IStatusLine, NullStatusLine>()
+                .AddSingleton<IUserInteraction, UnattendedUserInteraction>()
                 .AddSirstrapCore()
                 .AddTransient<Settings>()
                 .AddTransient<MainWindowViewModel>()
