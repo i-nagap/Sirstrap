@@ -6,7 +6,7 @@
         private const string ANNOUNCEMENTS_URI = "https://raw.githubusercontent.com/massimopaganigh/Sirstrap/main/announcements.txt";
 #pragma warning restore S1075
 
-        private static readonly SettingsTabOption _fastFlagsTab = new("FastFlags", "FastFlags", HasSubTabs: true);
+        private static readonly SettingsTabOption _fastFlagsTab = new("FastFlags", "FastFlags", IsPreview: true);
 
         private readonly HttpClient _httpClient;
         private readonly ICleanupService _cleanupService;
