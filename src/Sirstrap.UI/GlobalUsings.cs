@@ -28,6 +28,7 @@ global using Sirstrap.Core.Settings;
 global using Sirstrap.Core.Update;
 global using Sirstrap.Core.Weao;
 global using Sirstrap.Core.Windows;
+global using Sirstrap.UI.Localization;
 global using Sirstrap.UI.Models;
 global using Sirstrap.UI.ViewModels;
 global using Sirstrap.UI.Views;

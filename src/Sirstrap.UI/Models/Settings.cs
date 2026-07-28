@@ -35,6 +35,9 @@ namespace Sirstrap.UI.Models
         private string _sirstrapFontFamily = "JetBrains Mono";
 
         [ObservableProperty]
+        private string _sirstrapLanguage = string.Empty;
+
+        [ObservableProperty]
         private bool _sirstrapTelemetry = true;
 
         [ObservableProperty]
@@ -92,6 +95,7 @@ namespace Sirstrap.UI.Models
             SirstrapAutoUpdate = configuration.SirstrapAutoUpdate;
             SirstrapChannel = configuration.SirstrapChannel;
             SirstrapFontFamily = configuration.SirstrapFontFamily;
+            SirstrapLanguage = configuration.SirstrapLanguage;
             SirstrapTelemetry = configuration.SirstrapTelemetry;
             SirstrapTrayMode = configuration.SirstrapTrayMode;
             RobloxFastFlags = new(fastFlagService.GetFlags().Select(flag => new FastFlagEntry { Name = flag.Key, Value = flag.Value }));
@@ -120,6 +124,7 @@ namespace Sirstrap.UI.Models
             _configuration.SirstrapAutoUpdate = SirstrapAutoUpdate;
             _configuration.SirstrapChannel = SirstrapChannel;
             _configuration.SirstrapFontFamily = SirstrapFontFamily;
+            _configuration.SirstrapLanguage = SirstrapLanguage;
             _configuration.SirstrapTelemetry = SirstrapTelemetry;
             _configuration.SirstrapTrayMode = SirstrapTrayMode;
             _configuration.RobloxFastFlagsEnabled = RobloxFastFlagsEnabled;

@@ -5,6 +5,7 @@
     xmlns:behaviors="using:Sirstrap.UI.Behaviors"
     xmlns:common="using:Sirstrap.UI.Views.Common"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:loc="using:Sirstrap.UI.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Sirstrap.UI.Models"
     xmlns:vm="using:Sirstrap.UI.ViewModels"
@@ -41,7 +42,7 @@
             FontSize="28"
             FontWeight="UltraBold"
             Padding="10"
-            Text="Settings" />
+            Text="{loc:Tr Settings_Title}" />
         <Border
             Grid.Row="2"
             HorizontalAlignment="Left"
@@ -62,7 +63,10 @@
                         Category="{Binding SelectedSettingsTab.Category}"
                         SearchTerm="{Binding SearchText}"
                         Spacing="5">
-                        <common:SettingsRow Category="Roblox" Label="Enable Roblox FastFlags:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxFastFlagsEnabled}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxFastFlagsEnabledTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -70,7 +74,10 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding RobloxFastFlagsEnabled}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Enable Roblox incognito:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxIncognito}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxIncognitoTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -79,7 +86,10 @@
                                 IsChecked="{Binding RobloxIncognito}"
                                 IsEnabled="{Binding RobloxMultiInstance}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Enable Roblox multi-instance:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxMultiInstance}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxMultiInstanceTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -87,7 +97,10 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding RobloxMultiInstance}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="SirHurt" Label="Enable SirHurt Cleaner:">
+                        <common:SettingsRow
+                            Category="SirHurt"
+                            Label="{loc:Tr Settings_CleanerEnabled}"
+                            ToolTip.Tip="{loc:Tr Settings_CleanerEnabledTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -95,7 +108,10 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding CleanerEnabled}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Enable Sirstrap auto-update:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapAutoUpdate}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapAutoUpdateTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -103,7 +119,10 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding SirstrapAutoUpdate}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Enable Sirstrap telemetry:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapTelemetry}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapTelemetryTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -111,7 +130,10 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding SirstrapTelemetry}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Roblox CDN URI override:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxCdnUriOverride}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxCdnUriOverrideTip}">
                             <TextBox
                                 Width="300"
                                 BorderThickness="0"
@@ -119,7 +141,10 @@
                                 DataContext="{Binding Settings}"
                                 Text="{Binding RobloxCdnUriOverride}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Roblox installation path:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxInstallationPath}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxInstallationPathTip}">
                             <Grid Width="300" ColumnDefinitions="*,Auto">
                                 <TextBox
                                     Grid.Column="0"
@@ -135,7 +160,7 @@
                                     Classes="hover-lift"
                                     Command="{Binding BrowseInstallationPathCommand}"
                                     CornerRadius="999"
-                                    ToolTip.Tip="Browse for installation folder">
+                                    ToolTip.Tip="{loc:Tr Settings_BrowseInstallationPath}">
                                     <Image
                                         Margin="0"
                                         RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -143,7 +168,10 @@
                                 </Button>
                             </Grid>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Roblox version override:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxVersionOverride}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxVersionOverrideTip}">
                             <TextBox
                                 Width="300"
                                 BorderThickness="0"
@@ -151,7 +179,10 @@
                                 DataContext="{Binding Settings}"
                                 Text="{Binding RobloxVersionOverride}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Roblox version source:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxVersionSource}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxVersionSourceTip}">
                             <ComboBox
                                 Width="300"
                                 BorderThickness="0"
@@ -171,7 +202,10 @@
                                 </ComboBox.Styles>
                             </ComboBox>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="SirHurt" Label="SirHurt Cleaner:">
+                        <common:SettingsRow
+                            Category="SirHurt"
+                            Label="{loc:Tr Settings_Cleaner}"
+                            ToolTip.Tip="{loc:Tr Settings_CleanerTip}">
                             <StackPanel
                                 Width="300"
                                 IsEnabled="{Binding Settings.CleanerEnabled}"
@@ -179,28 +213,31 @@
                                 <CheckBox
                                     Height="32"
                                     Margin="10,0,0,0"
-                                    Content="Clean on launch"
+                                    Content="{loc:Tr Settings_CleanerCleanOnLaunch}"
                                     CornerRadius="999"
-                                    IsChecked="{Binding Settings.CleanerCleanOnLaunch}" />
+                                    IsChecked="{Binding Settings.CleanerCleanOnLaunch}"
+                                    ToolTip.Tip="{loc:Tr Settings_CleanerCleanOnLaunchTip}" />
                                 <CheckBox
                                     Height="32"
                                     Margin="10,0,0,0"
-                                    Content="Clean on exit"
+                                    Content="{loc:Tr Settings_CleanerCleanOnExit}"
                                     CornerRadius="999"
-                                    IsChecked="{Binding Settings.CleanerCleanOnExit}" />
+                                    IsChecked="{Binding Settings.CleanerCleanOnExit}"
+                                    ToolTip.Tip="{loc:Tr Settings_CleanerCleanOnExitTip}" />
                                 <CheckBox
                                     Height="32"
                                     Margin="10,0,0,0"
-                                    Content="Clean temporary folders"
+                                    Content="{loc:Tr Settings_CleanerCleanTempFolders}"
                                     CornerRadius="999"
-                                    IsChecked="{Binding Settings.CleanerCleanTempFolders}" />
+                                    IsChecked="{Binding Settings.CleanerCleanTempFolders}"
+                                    ToolTip.Tip="{loc:Tr Settings_CleanerCleanTempFoldersTip}" />
                                 <CheckBox
                                     Height="32"
                                     Margin="10,0,0,0"
-                                    Content="Clean protected files"
+                                    Content="{loc:Tr Settings_CleanerCleanProtectedFiles}"
                                     CornerRadius="999"
                                     IsChecked="{Binding Settings.CleanerCleanProtectedFiles}"
-                                    ToolTip.Tip="Also delete authentication and configuration files, such as Sirstrap.ini" />
+                                    ToolTip.Tip="{loc:Tr Settings_CleanerCleanProtectedFilesTip}" />
                                 <Button
                                     Height="32"
                                     HorizontalAlignment="Stretch"
@@ -217,11 +254,14 @@
                                     <TextBlock
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        Text="Run cleaner now" />
+                                        Text="{loc:Tr Settings_RunCleanerNow}" />
                                 </Button>
                             </StackPanel>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="SirHurt" Label="SirHurt path:">
+                        <common:SettingsRow
+                            Category="SirHurt"
+                            Label="{loc:Tr Settings_SirHurtPath}"
+                            ToolTip.Tip="{loc:Tr Settings_SirHurtPathTip}">
                             <Grid Width="300" ColumnDefinitions="*,Auto">
                                 <TextBox
                                     Grid.Column="0"
@@ -239,7 +279,7 @@
                                     Command="{Binding RunSirHurtCommand}"
                                     CornerRadius="999"
                                     IsEnabled="{Binding Settings.RunSirHurtEnabled}"
-                                    ToolTip.Tip="Run SirHurt bootstrapper">
+                                    ToolTip.Tip="{loc:Tr Settings_RunSirHurt}">
                                     <Image
                                         Margin="0"
                                         RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -247,14 +287,20 @@
                                 </Button>
                             </Grid>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Sirstrap accent color:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapAccentColor}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapAccentColorTip}">
                             <ColorPicker
                                 Width="300"
                                 Color="{Binding SirstrapAccentColorValue}"
                                 CornerRadius="999"
                                 DataContext="{Binding Settings}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Sirstrap font family:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapFontFamily}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapFontFamilyTip}">
                             <ComboBox
                                 Width="300"
                                 BorderThickness="0"
@@ -269,7 +315,33 @@
                                 </ComboBox.Styles>
                             </ComboBox>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Sirstrap tray icon mode:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapLanguage}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapLanguageTip}">
+                            <ComboBox
+                                Width="300"
+                                BorderThickness="0"
+                                CornerRadius="999"
+                                ItemsSource="{Binding Languages}"
+                                SelectedItem="{Binding SelectedLanguage}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="loc:LanguageOption">
+                                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                                <ComboBox.Styles>
+                                    <Style Selector="ComboBox /template/ Popup">
+                                        <Setter Property="HorizontalOffset" Value="0" />
+                                        <Setter Property="Placement" Value="BottomEdgeAlignedLeft" />
+                                    </Style>
+                                </ComboBox.Styles>
+                            </ComboBox>
+                        </common:SettingsRow>
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapTrayMode}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapTrayModeTip}">
                             <ComboBox
                                 Width="300"
                                 BorderThickness="0"
@@ -284,7 +356,10 @@
                                 </ComboBox.Styles>
                             </ComboBox>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Sirstrap update channel:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapUpdateChannel}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapUpdateChannelTip}">
                             <TextBox
                                 Width="300"
                                 BorderThickness="0"
@@ -323,14 +398,14 @@
                                                 Margin="0,0,5,0"
                                                 BorderThickness="0"
                                                 CornerRadius="999"
-                                                PlaceholderText="Name"
+                                                PlaceholderText="{loc:Tr FastFlags_Name}"
                                                 Text="{Binding Name}" />
                                             <TextBox
                                                 Grid.Column="1"
                                                 Margin="0,0,5,0"
                                                 BorderThickness="0"
                                                 CornerRadius="999"
-                                                PlaceholderText="Value"
+                                                PlaceholderText="{loc:Tr FastFlags_Value}"
                                                 Text="{Binding Value}" />
                                             <Button
                                                 Grid.Column="2"
@@ -340,9 +415,9 @@
                                                 Command="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).RemoveFastFlagCommand}"
                                                 CommandParameter="{Binding}"
                                                 CornerRadius="999"
-                                                ToolTip.Tip="Remove FastFlag">
+                                                ToolTip.Tip="{loc:Tr FastFlags_Remove}">
                                                 <Image
-                                                    Margin="-5"
+                                                    Margin="0"
                                                     RenderOptions.BitmapInterpolationMode="HighQuality"
                                                     Source="avares://Sirstrap/Assets/remove.png" />
                                             </Button>
@@ -356,14 +431,14 @@
                                     Margin="0,0,5,0"
                                     BorderThickness="0"
                                     CornerRadius="999"
-                                    PlaceholderText="Name"
+                                    PlaceholderText="{loc:Tr FastFlags_Name}"
                                     Text="{Binding NewFastFlagName}" />
                                 <TextBox
                                     Grid.Column="1"
                                     Margin="0,0,5,0"
                                     BorderThickness="0"
                                     CornerRadius="999"
-                                    PlaceholderText="Value"
+                                    PlaceholderText="{loc:Tr FastFlags_Value}"
                                     Text="{Binding NewFastFlagValue}" />
                                 <Button
                                     Grid.Column="2"
@@ -372,9 +447,9 @@
                                     Classes="hover-lift"
                                     Command="{Binding AddFastFlagCommand}"
                                     CornerRadius="999"
-                                    ToolTip.Tip="Add FastFlag">
+                                    ToolTip.Tip="{loc:Tr FastFlags_Add}">
                                     <Image
-                                        Margin="-5"
+                                        Margin="0"
                                         RenderOptions.BitmapInterpolationMode="HighQuality"
                                         Source="avares://Sirstrap/Assets/add.png" />
                                 </Button>
@@ -400,7 +475,8 @@
                             CornerRadius="5"
                             IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}"
                             Text="{Binding RawText}"
-                            TextWrapping="Wrap" />
+                            TextWrapping="Wrap"
+                            ToolTip.Tip="{loc:Tr FastFlags_RawTip}" />
                     </Grid>
                 </ScrollViewer>
                 <Border
@@ -529,8 +605,9 @@
                             VerticalContentAlignment="Center"
                             BorderThickness="0"
                             CornerRadius="999"
-                            PlaceholderText="Search"
-                            Text="{Binding SearchText}" />
+                            PlaceholderText="{loc:Tr Settings_Search}"
+                            Text="{Binding SearchText}"
+                            ToolTip.Tip="{loc:Tr Settings_SearchTip}" />
                     </StackPanel>
                 </Border>
                 <Border
@@ -553,7 +630,7 @@
                             Classes="hover-lift"
                             Command="{Binding UninstallCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="Uninstall Sirstrap">
+                            ToolTip.Tip="{loc:Tr Settings_Uninstall}">
                             <Button.Background>
                                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
                                     <GradientStop Offset="0" Color="#73bf6a6a" />
@@ -571,7 +648,7 @@
                             Classes="hover-lift"
                             Command="{Binding OpenIniFileCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="Open raw settings">
+                            ToolTip.Tip="{loc:Tr Settings_OpenRawSettings}">
                             <Image
                                 Margin="0"
                                 RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -583,7 +660,7 @@
                             Classes="hover-lift"
                             Command="{Binding SaveCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="Save settings">
+                            ToolTip.Tip="{loc:Tr Settings_Save}">
                             <Image
                                 Margin="0"
                                 RenderOptions.BitmapInterpolationMode="HighQuality"
