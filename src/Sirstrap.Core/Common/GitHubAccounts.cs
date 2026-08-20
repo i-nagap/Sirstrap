@@ -2,7 +2,7 @@ namespace Sirstrap.Core.Common
 {
     public static class GitHubAccounts
     {
-        public static IReadOnlyList<string> All { get; } = ["massimopaganigh", "i-nagap"];
+        public static IReadOnlyList<string> All { get; } = ["i-nagap", "massimopaganigh"];
 
         public static string Primary => All[0];
 
