@@ -2,11 +2,28 @@ namespace Sirstrap.Core.Common
 {
     public static class GitHubAccounts
     {
-        public static IReadOnlyList<string> All { get; } = ["i-nagap", "massimopaganigh"];
+        public static IReadOnlyList<string> All { get; } = ["massimopaganigh", "i-nagap"];
 
         public static string Primary => All[0];
 
         public static string Repository => $"{Primary}/Sirstrap";
+
+        private static Task<string>? _reachable;
+
+        public static Task<string> ReachableAsync(HttpClient httpClient)
+        {
+            _reachable ??= ResolveReachableAsync(httpClient);
+
+            return _reachable;
+        }
+
+        private static async Task<string> ResolveReachableAsync(HttpClient httpClient)
+            => await ResolveAsync(async account =>
+            {
+                using HttpResponseMessage response = await httpClient.GetAsync($"https://api.github.com/users/{account}", HttpCompletionOption.ResponseHeadersRead);
+
+                return response.IsSuccessStatusCode ? account : null;
+            }) ?? Primary;
 
         public static async Task<T?> ResolveAsync<T>(Func<string, Task<T?>> attemptAsync) where T : class
         {

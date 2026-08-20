@@ -1,10 +1,9 @@
 import { ACCENT_BORDER_HOVER, ACCENT_TEXT_HOVER, type Accent } from "@/config/accents";
 import type { Contributor } from "@/services/contributor-repository";
-import { ACCOUNTS, OWNER } from "@/config/site.config";
+import { ACCOUNTS } from "@/config/site.config";
+import { useReachableAccount } from "@/hooks/useReachableAccount";
 
-const AUTHOR = OWNER;
-const AUTHOR_URL = `https://github.com/${AUTHOR}`;
-const AUTHOR_AVATARS = ACCOUNTS.map(account => `https://github.com/${account}.png`);
+const AUTHOR_ACCOUNTS = ACCOUNTS.map(account => account.toLowerCase());
 const MAX_AVATARS = 8;
 const SKELETON_COUNT = 3;
 const AVATAR = "h-5 w-5 rounded-full border-2 border-background bg-background object-cover";
@@ -17,20 +16,24 @@ interface ProductBylineProps {
 
 const stopPropagation = (event: { stopPropagation: () => void }) => event.stopPropagation();
 
+const AVATARS = ACCOUNTS.map(account => `https://github.com/${account}.png`);
+
 const onAvatarError = (event: { currentTarget: HTMLImageElement }) => {
-  const next = AUTHOR_AVATARS[AUTHOR_AVATARS.indexOf(event.currentTarget.src) + 1];
+  const next = AVATARS[AVATARS.indexOf(event.currentTarget.src) + 1];
 
   if (next) event.currentTarget.src = next;
 };
 
 export function ProductByline({ accent, contributors, loading }: ProductBylineProps) {
-  const others = contributors.filter(contributor => contributor.login.toLowerCase() !== AUTHOR).slice(0, MAX_AVATARS - 1);
+  const author = useReachableAccount();
+  const authorUrl = `https://github.com/${author}`;
+  const others = contributors.filter(contributor => !AUTHOR_ACCOUNTS.includes(contributor.login.toLowerCase())).slice(0, MAX_AVATARS - 1);
   const trailing = others.length + (loading ? SKELETON_COUNT : 0);
 
   return (
     <div className="group flex w-fit items-center gap-2" onClick={stopPropagation}>
       <a
-        href={AUTHOR_URL}
+        href={authorUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="font-body text-[0.85rem] leading-[1.55] text-muted-foreground transition-colors duration-200 group-hover:text-foreground"
@@ -39,16 +42,16 @@ export function ProductByline({ accent, contributors, loading }: ProductBylinePr
       </a>
       <div className="flex items-center">
         <a
-          href={AUTHOR_URL}
+          href={authorUrl}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={AUTHOR}
+          aria-label={author}
           style={{ zIndex: trailing + 1 }}
           className="relative transition-all duration-300 ease-out hover:!z-20 hover:-translate-y-1"
         >
           <img
-            src={AUTHOR_AVATARS[0]}
-            alt={AUTHOR}
+            src={`https://github.com/${author}.png`}
+            alt={author}
             onError={onAvatarError}
             className={`${AVATAR} transition-all duration-300 group-hover:scale-110 ${ACCENT_BORDER_HOVER[accent]}`}
           />

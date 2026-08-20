@@ -1,4 +1,6 @@
 import { REPO } from "@/config/site.config";
+import { withAccount } from "@/services/github-accounts";
+import { useReachableAccount } from "@/hooks/useReachableAccount";
 import { PANEL_BACKGROUND } from "@/config/theme";
 import { transition } from "@/config/motion";
 import { ACCENT_BORDER, ACCENT_LINE, ACCENT_TEXT } from "@/config/accents";
@@ -48,7 +50,9 @@ export function ProductPanel({
   onLeave,
   onClick,
 }: ProductPanelProps) {
-  const downloadHref = product.downloadUrl ?? `${REPO}/releases/latest/download/${product.asset}`;
+  const account = useReachableAccount();
+  const downloadHref = withAccount(product.downloadUrl ?? `${REPO}/releases/latest/download/${product.asset}`, account);
+  const sourceHref = withAccount(product.source, account);
   const dimmed = !isMobile && hasActive && !active;
 
   return (
@@ -132,7 +136,7 @@ export function ProductPanel({
       >
         <ProductActions
           downloadHref={downloadHref}
-          sourceHref={product.source}
+          sourceHref={sourceHref}
           accentBorderClassName={ACCENT_BORDER[product.accent]}
         />
       </div>

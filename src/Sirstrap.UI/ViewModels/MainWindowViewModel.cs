@@ -290,16 +290,18 @@
         });
 
         [RelayCommand]
-        private void OpenGitHub()
+        private async Task OpenGitHubAsync()
         {
             try
             {
+                var account = await GitHubAccounts.ReachableAsync(_httpClient);
+
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = $"{GITHUB_PROFILE_URI_PREFIX}{GitHubAccounts.Repository}",
+                    FileName = $"{GITHUB_PROFILE_URI_PREFIX}{account}/Sirstrap",
                     UseShellExecute = true
                 });
-                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHub), 1);
+                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHubAsync), 1);
             }
             catch (Exception ex)
             {
@@ -308,16 +310,18 @@
         }
 
         [RelayCommand]
-        private void OpenGitHubProfile()
+        private async Task OpenGitHubProfileAsync()
         {
             try
             {
+                var account = await GitHubAccounts.ReachableAsync(_httpClient);
+
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = $"{GITHUB_PROFILE_URI_PREFIX}{GitHubAccounts.Primary}",
+                    FileName = $"{GITHUB_PROFILE_URI_PREFIX}{account}",
                     UseShellExecute = true
                 });
-                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHubProfile), 1);
+                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHubProfileAsync), 1);
             }
             catch (Exception ex)
             {
