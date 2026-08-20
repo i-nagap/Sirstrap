@@ -1,4 +1,4 @@
-namespace Sirstrap.Core.Tests.Update
+﻿namespace Sirstrap.Core.Tests.Update
 {
     public class GitHubReleaseClientTests
     {
@@ -13,6 +13,21 @@ namespace Sirstrap.Core.Tests.Update
             Assert.Equal(2, releases.Count);
             Assert.Equal("v1.0.0.0-beta", releases[0].TagName);
             Assert.True(releases[1].IsDraft);
+        }
+
+        [Fact]
+        public async Task GetReleasesAsync_FallsBackToTheNextAccount()
+        {
+            StubHttpMessageHandler handler = new(request => request.RequestUri!.ToString().Contains(GitHubAccounts.Primary, StringComparison.OrdinalIgnoreCase)
+                ? new HttpResponseMessage(HttpStatusCode.NotFound)
+                : new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""[{"tag_name":"v3.0.0.0-beta","draft":false,"body":"c"}]""") });
+            GitHubReleaseClient releaseClient = new(new HttpClient(handler));
+
+            var releases = await releaseClient.GetReleasesAsync();
+
+            Assert.Single(releases);
+            Assert.Equal("v3.0.0.0-beta", releases[0].TagName);
+            Assert.Equal(GitHubAccounts.All.Count, handler.CallCount);
         }
 
         [Fact]

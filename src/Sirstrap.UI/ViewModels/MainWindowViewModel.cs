@@ -1,4 +1,4 @@
-namespace Sirstrap.UI.ViewModels
+﻿namespace Sirstrap.UI.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
@@ -14,9 +14,8 @@ namespace Sirstrap.UI.ViewModels
         private readonly IWeaoService _weaoService;
 
 #pragma warning disable S1075 // fixed Sirstrap project endpoints, not deployment specific paths
-        private const string GITHUB_PROFILE_URI = "https://github.com/i-nagap";
-        private const string LOGO_IMAGE_URI = "https://raw.githubusercontent.com/i-nagap/Sirstrap/main/images/SirstrapIcon.png";
-        private const string PROFILE_IMAGE_URI = "https://github.com/i-nagap.png";
+        private const string GITHUB_PROFILE_URI_PREFIX = "https://github.com/";
+        private const string LOGO_IMAGE_URI_PREFIX = "https://raw.githubusercontent.com/";
 #pragma warning restore S1075
 
         [ObservableProperty]
@@ -241,11 +240,11 @@ namespace Sirstrap.UI.ViewModels
 
         private async Task LoadImagesAsync()
         {
-            var profileImage = await LoadImageAsync(PROFILE_IMAGE_URI);
+            var profileImage = await GitHubAccounts.ResolveAsync(account => LoadImageAsync($"{GITHUB_PROFILE_URI_PREFIX}{account}.png"));
 
             await Dispatcher.UIThread.InvokeAsync(() => ProfileImage = profileImage);
 
-            var logoImage = await LoadImageAsync(LOGO_IMAGE_URI);
+            var logoImage = await GitHubAccounts.ResolveAsync(account => LoadImageAsync($"{LOGO_IMAGE_URI_PREFIX}{account}/Sirstrap/main/images/SirstrapIcon.png"));
 
             await Dispatcher.UIThread.InvokeAsync(() => LogoImage = logoImage);
         }
@@ -291,16 +290,18 @@ namespace Sirstrap.UI.ViewModels
         });
 
         [RelayCommand]
-        private void OpenGitHub()
+        private async Task OpenGitHubAsync()
         {
             try
             {
+                var account = await GitHubAccounts.ReachableAsync(_httpClient);
+
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "https://github.com/i-nagap/Sirstrap",
+                    FileName = $"{GITHUB_PROFILE_URI_PREFIX}{account}/Sirstrap",
                     UseShellExecute = true
                 });
-                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHub), 1);
+                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHubAsync), 1);
             }
             catch (Exception ex)
             {
@@ -309,16 +310,18 @@ namespace Sirstrap.UI.ViewModels
         }
 
         [RelayCommand]
-        private void OpenGitHubProfile()
+        private async Task OpenGitHubProfileAsync()
         {
             try
             {
+                var account = await GitHubAccounts.ReachableAsync(_httpClient);
+
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = GITHUB_PROFILE_URI,
+                    FileName = $"{GITHUB_PROFILE_URI_PREFIX}{account}",
                     UseShellExecute = true
                 });
-                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHubProfile), 1);
+                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHubProfileAsync), 1);
             }
             catch (Exception ex)
             {

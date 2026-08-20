@@ -1,4 +1,5 @@
 import type { Product } from "@/domain/product";
+import { OWNER } from "@/config/site.config";
 import iconCleaner from "../../../src/SirHurt.Cleaner.CLI/Assets/favicon.ico";
 import iconCli from "../../../src/Sirstrap.CLI/Assets/favicon.ico";
 import iconUi from "../../../src/Sirstrap.UI/Assets/favicon.ico";
@@ -13,10 +14,10 @@ export const products: Product[] = [
       "A complete cleanup utility that wipes Roblox, SirHurt, and Sirstrap from your filesystem and registry — built by exploiters, for exploiters.",
     asset: "SirHurt.Cleaner.CLI.zip",
     variants: ["SirHurt.Cleaner.CLI_fat.zip", "SirHurt.Cleaner.CLI.cab", "SirHurt.Cleaner.CLI_fat.cab"],
-    externalDownloads: [{ repo: "i-nagap/sirhurt.cleaner", match: { type: "exact", asset: "SirHurt.Cleaner.exe" } }],
+    externalDownloads: [{ repo: `${OWNER}/sirhurt.cleaner`, match: { type: "exact", asset: "SirHurt.Cleaner.exe" } }],
     recommended: false,
     icon: iconCleaner,
-    source: "https://github.com/i-nagap/Sirstrap/tree/main/src/SirHurt.Cleaner.CLI",
+    source: `https://github.com/${OWNER}/Sirstrap/tree/main/src/SirHurt.Cleaner.CLI`,
     accent: "red",
     title: { kind: "typewriter", head: "SirHurt.Cleaner", tail: ".CLI" },
     core: true,
@@ -30,7 +31,7 @@ export const products: Product[] = [
     externalDownloads: [],
     recommended: false,
     icon: iconCli,
-    source: "https://github.com/i-nagap/Sirstrap/tree/main/src/Sirstrap.CLI",
+    source: `https://github.com/${OWNER}/Sirstrap/tree/main/src/Sirstrap.CLI`,
     accent: "teal",
     title: { kind: "typewriter", head: "Sirstrap", tail: ".CLI" },
     core: true,
@@ -44,7 +45,7 @@ export const products: Product[] = [
     externalDownloads: [],
     recommended: true,
     icon: iconUi,
-    source: "https://github.com/i-nagap/Sirstrap/tree/main/src/Sirstrap.UI",
+    source: `https://github.com/${OWNER}/Sirstrap/tree/main/src/Sirstrap.UI`,
     accent: "amber",
     title: { kind: "shimmer", head: "Sirstrap", tail: ".UI" },
     core: true,
@@ -58,13 +59,13 @@ export const products: Product[] = [
     description: "A DLL for building custom UIs for SirHurt — built by exploiters, for exploiters.",
     asset: "KneeSurgery",
     variants: [],
-    externalDownloads: [{ repo: "i-nagap/KneeSurgery", match: { type: "prefix", prefix: "KneeSurgery_" } }],
+    externalDownloads: [{ repo: `${OWNER}/KneeSurgery`, match: { type: "prefix", prefix: "KneeSurgery_" } }],
     recommended: false,
     icon: iconKnee,
-    source: "https://github.com/i-nagap/KneeSurgery",
+    source: `https://github.com/${OWNER}/KneeSurgery`,
     accent: "mint",
     title: { kind: "rapid", head: "Knee", tail: "Surgery", glyph: "e", max: 15 },
-    repo: "i-nagap/KneeSurgery",
-    downloadUrl: "https://github.com/i-nagap/KneeSurgery/releases/latest",
+    repo: `${OWNER}/KneeSurgery`,
+    downloadUrl: `https://github.com/${OWNER}/KneeSurgery/releases/latest`,
   },
 ];

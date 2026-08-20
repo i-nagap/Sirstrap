@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
 using System.Resources;
@@ -51,9 +51,9 @@ namespace Sirstrap.UI.Localization
             {
                 return CultureInfo.GetCultureInfo(language);
             }
-            catch (CultureNotFoundException)
+            catch (CultureNotFoundException ex)
             {
-                Log.Warning("[!] The language {Language} is not available, falling back to the system one.", language);
+                Log.Warning(ex, "[!] The language {Language} is not available, falling back to the system one.", language);
 
                 return CultureInfo.InstalledUICulture;
             }
