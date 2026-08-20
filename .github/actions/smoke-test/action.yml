@@ -49,4 +49,5 @@ runs:
         Write-Host "$executable did not exit within $timeout seconds; killing it and treating the smoke test as passed."
         $process.Kill()
         $process.WaitForExit()
+        ($outputReader.ReadToEnd() + $errorReader.ReadToEnd()) | Out-File $log -Encoding UTF8
         exit 0

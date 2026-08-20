@@ -122,9 +122,16 @@ jobs:
       - name: Upload build artifacts
         uses: ./.github/actions/upload-build-artifacts
 
-      - name: Run security scan
+      - name: Run Microsoft Security DevOps
+        id: msdo
         if: inputs.run-security-scan
-        uses: ./.github/actions/security-scan
+        uses: microsoft/security-devops-action@latest
+
+      - name: Upload the SARIF results
+        if: inputs.run-security-scan
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: ${{ steps.msdo.outputs.sarifFile }}
 
       - name: Create the GitHub release
         if: inputs.create-release && startsWith(github.ref, 'refs/tags/')

@@ -1,9 +1,10 @@
 import { ACCENT_BORDER_HOVER, ACCENT_TEXT_HOVER, type Accent } from "@/config/accents";
 import type { Contributor } from "@/services/contributor-repository";
+import { ACCOUNTS, OWNER } from "@/config/site.config";
 
-const AUTHOR = "i-nagap";
+const AUTHOR = OWNER;
 const AUTHOR_URL = `https://github.com/${AUTHOR}`;
-const AUTHOR_AVATAR = `https://github.com/${AUTHOR}.png`;
+const AUTHOR_AVATARS = ACCOUNTS.map(account => `https://github.com/${account}.png`);
 const MAX_AVATARS = 8;
 const SKELETON_COUNT = 3;
 const AVATAR = "h-5 w-5 rounded-full border-2 border-background bg-background object-cover";
@@ -15,6 +16,12 @@ interface ProductBylineProps {
 }
 
 const stopPropagation = (event: { stopPropagation: () => void }) => event.stopPropagation();
+
+const onAvatarError = (event: { currentTarget: HTMLImageElement }) => {
+  const next = AUTHOR_AVATARS[AUTHOR_AVATARS.indexOf(event.currentTarget.src) + 1];
+
+  if (next) event.currentTarget.src = next;
+};
 
 export function ProductByline({ accent, contributors, loading }: ProductBylineProps) {
   const others = contributors.filter(contributor => contributor.login.toLowerCase() !== AUTHOR).slice(0, MAX_AVATARS - 1);
@@ -40,8 +47,9 @@ export function ProductByline({ accent, contributors, loading }: ProductBylinePr
           className="relative transition-all duration-300 ease-out hover:!z-20 hover:-translate-y-1"
         >
           <img
-            src={AUTHOR_AVATAR}
+            src={AUTHOR_AVATARS[0]}
             alt={AUTHOR}
+            onError={onAvatarError}
             className={`${AVATAR} transition-all duration-300 group-hover:scale-110 ${ACCENT_BORDER_HOVER[accent]}`}
           />
         </a>
