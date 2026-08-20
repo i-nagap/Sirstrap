@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Main_OpenProfile" xml:space="preserve">
+    <value>Apri il profilo GitHub dell'autore</value>
+  </data>
+  <data name="Main_OpenRepository" xml:space="preserve">
+    <value>Apri il repository di Sirstrap su GitHub</value>
+  </data>
+  <data name="Main_Logout" xml:space="preserve">
+    <value>Esci dall'account SirHurt</value>
+  </data>
+  <data name="Main_OpenSettings" xml:space="preserve">
+    <value>Apri le impostazioni di Sirstrap</value>
+  </data>
+  <data name="Main_Launch" xml:space="preserve">
+    <value>Avvia Roblox, oppure usa la freccia per scegliere la sorgente della versione</value>
+  </data>
+
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="Settings_Search" xml:space="preserve">
+    <value>Cerca</value>
+  </data>
+  <data name="Settings_SearchTip" xml:space="preserve">
+    <value>Filtra le impostazioni per nome</value>
+  </data>
+  <data name="Settings_Uninstall" xml:space="preserve">
+    <value>Rimuovi Sirstrap, i suoi dati e il suo gestore di protocollo da questo computer</value>
+  </data>
+  <data name="Settings_OpenRawSettings" xml:space="preserve">
+    <value>Apri Sirstrap.ini per modificare le impostazioni come testo semplice</value>
+  </data>
+  <data name="Settings_Save" xml:space="preserve">
+    <value>Salva le impostazioni e chiudi questa finestra</value>
+  </data>
+
+  <data name="Tab_All" xml:space="preserve">
+    <value>Tutte</value>
+  </data>
+  <data name="Tab_FastFlags" xml:space="preserve">
+    <value>FastFlags</value>
+  </data>
+  <data name="Tab_Roblox" xml:space="preserve">
+    <value>Roblox</value>
+  </data>
+  <data name="Tab_SirHurt" xml:space="preserve">
+    <value>SirHurt</value>
+  </data>
+  <data name="Tab_Sirstrap" xml:space="preserve">
+    <value>Sirstrap</value>
+  </data>
+
+  <data name="FastFlags_Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="FastFlags_Value" xml:space="preserve">
+    <value>Valore</value>
+  </data>
+  <data name="FastFlags_Add" xml:space="preserve">
+    <value>Aggiungi questo FastFlag alla lista</value>
+  </data>
+  <data name="FastFlags_Remove" xml:space="preserve">
+    <value>Rimuovi questo FastFlag dalla lista</value>
+  </data>
+  <data name="FastFlags_RawTip" xml:space="preserve">
+    <value>Modifica tutti i FastFlag insieme, come JSON grezzo</value>
+  </data>
+
+  <data name="Settings_RobloxFastFlagsEnabled" xml:space="preserve">
+    <value>Abilita i FastFlag di Roblox:</value>
+  </data>
+  <data name="Settings_RobloxFastFlagsEnabledTip" xml:space="preserve">
+    <value>Applica i FastFlag elencati nella scheda FastFlags a ogni avvio di Roblox</value>
+  </data>
+  <data name="Settings_RobloxIncognito" xml:space="preserve">
+    <value>Abilita Roblox in incognito:</value>
+  </data>
+  <data name="Settings_RobloxIncognitoTip" xml:space="preserve">
+    <value>Sposta da parte la cartella dati locale di Roblox mentre il gioco è in esecuzione, così la sessione non lascia tracce. Richiede la multi-istanza</value>
+  </data>
+  <data name="Settings_RobloxMultiInstance" xml:space="preserve">
+    <value>Abilita la multi-istanza di Roblox:</value>
+  </data>
+  <data name="Settings_RobloxMultiInstanceTip" xml:space="preserve">
+    <value>Consenti l'esecuzione di più client Roblox contemporaneamente</value>
+  </data>
+  <data name="Settings_RobloxCdnUriOverride" xml:space="preserve">
+    <value>URI CDN di Roblox personalizzato:</value>
+  </data>
+  <data name="Settings_RobloxCdnUriOverrideTip" xml:space="preserve">
+    <value>Scarica Roblox da questa CDN invece che dalla più veloce trovata da Sirstrap. Lascia vuoto per sceglierla automaticamente</value>
+  </data>
+  <data name="Settings_RobloxInstallationPath" xml:space="preserve">
+    <value>Percorso di installazione di Roblox:</value>
+  </data>
+  <data name="Settings_RobloxInstallationPathTip" xml:space="preserve">
+    <value>Cartella in cui Sirstrap installa e conserva le versioni di Roblox</value>
+  </data>
+  <data name="Settings_BrowseInstallationPath" xml:space="preserve">
+    <value>Scegli la cartella di installazione di Roblox</value>
+  </data>
+  <data name="Settings_RobloxVersionOverride" xml:space="preserve">
+    <value>Versione di Roblox personalizzata:</value>
+  </data>
+  <data name="Settings_RobloxVersionOverrideTip" xml:space="preserve">
+    <value>Distribuisci esattamente questo hash di versione invece di quello proposto dalla sorgente. Lascia vuoto per seguire la sorgente</value>
+  </data>
+  <data name="Settings_RobloxVersionSource" xml:space="preserve">
+    <value>Sorgente della versione di Roblox:</value>
+  </data>
+  <data name="Settings_RobloxVersionSourceTip" xml:space="preserve">
+    <value>Dove Sirstrap cerca quale versione di Roblox distribuire</value>
+  </data>
+
+  <data name="Settings_CleanerEnabled" xml:space="preserve">
+    <value>Abilita SirHurt Cleaner:</value>
+  </data>
+  <data name="Settings_CleanerEnabledTip" xml:space="preserve">
+    <value>Attiva il cleaner che cancella i dati di Roblox e Sirstrap da questo computer</value>
+  </data>
+  <data name="Settings_Cleaner" xml:space="preserve">
+    <value>SirHurt Cleaner:</value>
+  </data>
+  <data name="Settings_CleanerTip" xml:space="preserve">
+    <value>Scegli quando eseguire il cleaner e quanto deve rimuovere</value>
+  </data>
+  <data name="Settings_CleanerCleanOnLaunch" xml:space="preserve">
+    <value>Pulisci all'avvio</value>
+  </data>
+  <data name="Settings_CleanerCleanOnLaunchTip" xml:space="preserve">
+    <value>Esegui il cleaner subito prima che Roblox parta</value>
+  </data>
+  <data name="Settings_CleanerCleanOnExit" xml:space="preserve">
+    <value>Pulisci alla chiusura</value>
+  </data>
+  <data name="Settings_CleanerCleanOnExitTip" xml:space="preserve">
+    <value>Esegui il cleaner subito dopo la chiusura di Roblox</value>
+  </data>
+  <data name="Settings_CleanerCleanTempFolders" xml:space="preserve">
+    <value>Pulisci le cartelle temporanee</value>
+  </data>
+  <data name="Settings_CleanerCleanTempFoldersTip" xml:space="preserve">
+    <value>Svuota anche le cartelle temporanee di Windows</value>
+  </data>
+  <data name="Settings_CleanerCleanProtectedFiles" xml:space="preserve">
+    <value>Pulisci i file protetti</value>
+  </data>
+  <data name="Settings_CleanerCleanProtectedFilesTip" xml:space="preserve">
+    <value>Elimina anche i file di autenticazione e configurazione, come Sirstrap.ini</value>
+  </data>
+  <data name="Settings_RunCleanerNow" xml:space="preserve">
+    <value>Esegui il cleaner ora</value>
+  </data>
+  <data name="Settings_RunCleanerNowTip" xml:space="preserve">
+    <value>Chiudi Roblox e SirHurt ed elimina subito i loro dati. L'operazione non è reversibile</value>
+  </data>
+  <data name="Settings_SirHurtPath" xml:space="preserve">
+    <value>Percorso di SirHurt:</value>
+  </data>
+  <data name="Settings_SirHurtPathTip" xml:space="preserve">
+    <value>Cartella in cui è installato SirHurt, rilevata automaticamente</value>
+  </data>
+  <data name="Settings_RunSirHurt" xml:space="preserve">
+    <value>Avvia il bootstrapper di SirHurt</value>
+  </data>
+
+  <data name="Settings_SirstrapAutoUpdate" xml:space="preserve">
+    <value>Abilita l'aggiornamento automatico di Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapAutoUpdateTip" xml:space="preserve">
+    <value>Scarica e installa automaticamente le nuove versioni di Sirstrap all'avvio</value>
+  </data>
+  <data name="Settings_SirstrapTelemetry" xml:space="preserve">
+    <value>Abilita la telemetria di Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapTelemetryTip" xml:space="preserve">
+    <value>Invia segnalazioni di crash e metriche d'uso anonime per aiutare a correggere i bug</value>
+  </data>
+  <data name="Settings_SirstrapAccentColor" xml:space="preserve">
+    <value>Colore principale di Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapAccentColorTip" xml:space="preserve">
+    <value>Colore usato per evidenziare l'interfaccia</value>
+  </data>
+  <data name="Settings_SirstrapFontFamily" xml:space="preserve">
+    <value>Carattere di Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapFontFamilyTip" xml:space="preserve">
+    <value>Carattere usato in tutta l'interfaccia</value>
+  </data>
+  <data name="Settings_SirstrapLanguage" xml:space="preserve">
+    <value>Lingua di Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapLanguageTip" xml:space="preserve">
+    <value>Lingua dell'interfaccia. Sistema segue la lingua di Windows</value>
+  </data>
+  <data name="Settings_SirstrapTrayMode" xml:space="preserve">
+    <value>Modalità icona nella barra di Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapTrayModeTip" xml:space="preserve">
+    <value>Quando Sirstrap deve nascondersi nella barra di sistema invece di restare a schermo</value>
+  </data>
+  <data name="Settings_SirstrapUpdateChannel" xml:space="preserve">
+    <value>Canale di aggiornamento di Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapUpdateChannelTip" xml:space="preserve">
+    <value>Canale di rilascio da cui aggiornarsi, ad esempio -beta per ricevere le anteprime</value>
+  </data>
+</root>

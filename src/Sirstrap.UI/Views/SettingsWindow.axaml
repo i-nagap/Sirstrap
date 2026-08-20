@@ -5,6 +5,7 @@
     xmlns:behaviors="using:Sirstrap.UI.Behaviors"
     xmlns:common="using:Sirstrap.UI.Views.Common"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:loc="using:Sirstrap.UI.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Sirstrap.UI.Models"
     xmlns:vm="using:Sirstrap.UI.ViewModels"
@@ -41,7 +42,7 @@
             FontSize="28"
             FontWeight="UltraBold"
             Padding="10"
-            Text="Settings" />
+            Text="{loc:Tr Settings_Title}" />
         <Border
             Grid.Row="2"
             HorizontalAlignment="Left"
@@ -50,7 +51,7 @@
             BoxShadow="0 0 10 0 #212830"
             CornerRadius="5"
             Padding="5">
-            <Grid>
+            <Grid Grid.IsSharedSizeScope="True">
                 <ScrollViewer
                     behaviors:ScrollFade.IsEnabled="True"
                     HorizontalScrollBarVisibility="Disabled"
@@ -58,11 +59,14 @@
                     VerticalScrollBarVisibility="Auto">
                     <common:SettingsList
                         Margin="0,47,15,47"
+                        behaviors:LiquidGlass.IsContentTransitionEnabled="True"
                         Category="{Binding SelectedSettingsTab.Category}"
-                        Grid.IsSharedSizeScope="True"
                         SearchTerm="{Binding SearchText}"
                         Spacing="5">
-                        <common:SettingsRow Category="Roblox" Label="Enable Roblox FastFlags:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxFastFlagsEnabled}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxFastFlagsEnabledTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -70,7 +74,10 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding RobloxFastFlagsEnabled}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Enable Roblox incognito:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxIncognito}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxIncognitoTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -79,7 +86,10 @@
                                 IsChecked="{Binding RobloxIncognito}"
                                 IsEnabled="{Binding RobloxMultiInstance}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Enable Roblox multi-instance:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxMultiInstance}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxMultiInstanceTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -87,7 +97,10 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding RobloxMultiInstance}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="SirHurt" Label="Enable SirHurt Cleaner:">
+                        <common:SettingsRow
+                            Category="SirHurt"
+                            Label="{loc:Tr Settings_CleanerEnabled}"
+                            ToolTip.Tip="{loc:Tr Settings_CleanerEnabledTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -95,7 +108,10 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding CleanerEnabled}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Enable Sirstrap auto-update:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapAutoUpdate}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapAutoUpdateTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -103,7 +119,10 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding SirstrapAutoUpdate}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Enable Sirstrap telemetry:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapTelemetry}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapTelemetryTip}">
                             <CheckBox
                                 Height="32"
                                 Margin="10,0,0,0"
@@ -111,16 +130,22 @@
                                 DataContext="{Binding Settings}"
                                 IsChecked="{Binding SirstrapTelemetry}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Roblox CDN URI override:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxCdnUriOverride}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxCdnUriOverrideTip}">
                             <TextBox
-                                Width="200"
+                                Width="300"
                                 BorderThickness="0"
                                 CornerRadius="999"
                                 DataContext="{Binding Settings}"
                                 Text="{Binding RobloxCdnUriOverride}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Roblox installation path:">
-                            <Grid Width="200" ColumnDefinitions="*,Auto">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxInstallationPath}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxInstallationPathTip}">
+                            <Grid Width="300" ColumnDefinitions="*,Auto">
                                 <TextBox
                                     Grid.Column="0"
                                     Margin="0,0,5,0"
@@ -135,7 +160,7 @@
                                     Classes="hover-lift"
                                     Command="{Binding BrowseInstallationPathCommand}"
                                     CornerRadius="999"
-                                    ToolTip.Tip="Browse for installation folder">
+                                    ToolTip.Tip="{loc:Tr Settings_BrowseInstallationPath}">
                                     <Image
                                         Margin="0"
                                         RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -143,17 +168,23 @@
                                 </Button>
                             </Grid>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Roblox version override:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxVersionOverride}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxVersionOverrideTip}">
                             <TextBox
-                                Width="200"
+                                Width="300"
                                 BorderThickness="0"
                                 CornerRadius="999"
                                 DataContext="{Binding Settings}"
                                 Text="{Binding RobloxVersionOverride}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Roblox" Label="Roblox version source:">
+                        <common:SettingsRow
+                            Category="Roblox"
+                            Label="{loc:Tr Settings_RobloxVersionSource}"
+                            ToolTip.Tip="{loc:Tr Settings_RobloxVersionSourceTip}">
                             <ComboBox
-                                Width="200"
+                                Width="300"
                                 BorderThickness="0"
                                 CornerRadius="999"
                                 ItemsSource="{Binding VersionSources}"
@@ -171,36 +202,42 @@
                                 </ComboBox.Styles>
                             </ComboBox>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="SirHurt" Label="SirHurt Cleaner:">
+                        <common:SettingsRow
+                            Category="SirHurt"
+                            Label="{loc:Tr Settings_Cleaner}"
+                            ToolTip.Tip="{loc:Tr Settings_CleanerTip}">
                             <StackPanel
-                                Width="200"
+                                Width="300"
                                 IsEnabled="{Binding Settings.CleanerEnabled}"
                                 Spacing="5">
                                 <CheckBox
                                     Height="32"
                                     Margin="10,0,0,0"
-                                    Content="Clean on launch"
+                                    Content="{loc:Tr Settings_CleanerCleanOnLaunch}"
                                     CornerRadius="999"
-                                    IsChecked="{Binding Settings.CleanerCleanOnLaunch}" />
+                                    IsChecked="{Binding Settings.CleanerCleanOnLaunch}"
+                                    ToolTip.Tip="{loc:Tr Settings_CleanerCleanOnLaunchTip}" />
                                 <CheckBox
                                     Height="32"
                                     Margin="10,0,0,0"
-                                    Content="Clean on exit"
+                                    Content="{loc:Tr Settings_CleanerCleanOnExit}"
                                     CornerRadius="999"
-                                    IsChecked="{Binding Settings.CleanerCleanOnExit}" />
+                                    IsChecked="{Binding Settings.CleanerCleanOnExit}"
+                                    ToolTip.Tip="{loc:Tr Settings_CleanerCleanOnExitTip}" />
                                 <CheckBox
                                     Height="32"
                                     Margin="10,0,0,0"
-                                    Content="Clean temporary folders"
+                                    Content="{loc:Tr Settings_CleanerCleanTempFolders}"
                                     CornerRadius="999"
-                                    IsChecked="{Binding Settings.CleanerCleanTempFolders}" />
+                                    IsChecked="{Binding Settings.CleanerCleanTempFolders}"
+                                    ToolTip.Tip="{loc:Tr Settings_CleanerCleanTempFoldersTip}" />
                                 <CheckBox
                                     Height="32"
                                     Margin="10,0,0,0"
-                                    Content="Clean protected files"
+                                    Content="{loc:Tr Settings_CleanerCleanProtectedFiles}"
                                     CornerRadius="999"
                                     IsChecked="{Binding Settings.CleanerCleanProtectedFiles}"
-                                    ToolTip.Tip="Also delete authentication and configuration files, such as Sirstrap.ini" />
+                                    ToolTip.Tip="{loc:Tr Settings_CleanerCleanProtectedFilesTip}" />
                                 <Button
                                     Height="32"
                                     HorizontalAlignment="Stretch"
@@ -217,12 +254,15 @@
                                     <TextBlock
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        Text="Run cleaner now" />
+                                        Text="{loc:Tr Settings_RunCleanerNow}" />
                                 </Button>
                             </StackPanel>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="SirHurt" Label="SirHurt path:">
-                            <Grid Width="200" ColumnDefinitions="*,Auto">
+                        <common:SettingsRow
+                            Category="SirHurt"
+                            Label="{loc:Tr Settings_SirHurtPath}"
+                            ToolTip.Tip="{loc:Tr Settings_SirHurtPathTip}">
+                            <Grid Width="300" ColumnDefinitions="*,Auto">
                                 <TextBox
                                     Grid.Column="0"
                                     Margin="0,0,5,0"
@@ -239,7 +279,7 @@
                                     Command="{Binding RunSirHurtCommand}"
                                     CornerRadius="999"
                                     IsEnabled="{Binding Settings.RunSirHurtEnabled}"
-                                    ToolTip.Tip="Run SirHurt bootstrapper">
+                                    ToolTip.Tip="{loc:Tr Settings_RunSirHurt}">
                                     <Image
                                         Margin="0"
                                         RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -247,16 +287,22 @@
                                 </Button>
                             </Grid>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Sirstrap accent color:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapAccentColor}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapAccentColorTip}">
                             <ColorPicker
-                                Width="200"
+                                Width="300"
                                 Color="{Binding SirstrapAccentColorValue}"
                                 CornerRadius="999"
                                 DataContext="{Binding Settings}" />
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Sirstrap font family:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapFontFamily}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapFontFamilyTip}">
                             <ComboBox
-                                Width="200"
+                                Width="300"
                                 BorderThickness="0"
                                 CornerRadius="999"
                                 ItemsSource="{Binding FontFamilies}"
@@ -269,9 +315,35 @@
                                 </ComboBox.Styles>
                             </ComboBox>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Sirstrap tray icon mode:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapLanguage}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapLanguageTip}">
                             <ComboBox
-                                Width="200"
+                                Width="300"
+                                BorderThickness="0"
+                                CornerRadius="999"
+                                ItemsSource="{Binding Languages}"
+                                SelectedItem="{Binding SelectedLanguage}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="loc:LanguageOption">
+                                        <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                                <ComboBox.Styles>
+                                    <Style Selector="ComboBox /template/ Popup">
+                                        <Setter Property="HorizontalOffset" Value="0" />
+                                        <Setter Property="Placement" Value="BottomEdgeAlignedLeft" />
+                                    </Style>
+                                </ComboBox.Styles>
+                            </ComboBox>
+                        </common:SettingsRow>
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapTrayMode}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapTrayModeTip}">
+                            <ComboBox
+                                Width="300"
                                 BorderThickness="0"
                                 CornerRadius="999"
                                 ItemsSource="{Binding TrayModes}"
@@ -284,9 +356,12 @@
                                 </ComboBox.Styles>
                             </ComboBox>
                         </common:SettingsRow>
-                        <common:SettingsRow Category="Sirstrap" Label="Sirstrap update channel:">
+                        <common:SettingsRow
+                            Category="Sirstrap"
+                            Label="{loc:Tr Settings_SirstrapUpdateChannel}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapUpdateChannelTip}">
                             <TextBox
-                                Width="200"
+                                Width="300"
                                 BorderThickness="0"
                                 CornerRadius="999"
                                 DataContext="{Binding Settings}"
@@ -299,97 +374,110 @@
                     HorizontalScrollBarVisibility="Disabled"
                     IsVisible="{Binding IsFastFlagsListVisible}"
                     VerticalScrollBarVisibility="Auto">
-                    <StackPanel
-                        Width="500"
-                        Margin="0,47,15,47"
-                        IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}"
-                        Spacing="5">
-                        <ItemsControl ItemsSource="{Binding FastFlags}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Spacing="5" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="models:FastFlagEntry">
-                                    <Grid ColumnDefinitions="*,*,Auto" Opacity="{Binding Opacity}">
-                                        <TextBox
-                                            Grid.Column="0"
-                                            Margin="0,0,5,0"
-                                            BorderThickness="0"
-                                            CornerRadius="999"
-                                            PlaceholderText="Name"
-                                            Text="{Binding Name}" />
-                                        <TextBox
-                                            Grid.Column="1"
-                                            Margin="0,0,5,0"
-                                            BorderThickness="0"
-                                            CornerRadius="999"
-                                            PlaceholderText="Value"
-                                            Text="{Binding Value}" />
-                                        <Button
-                                            Grid.Column="2"
-                                            Width="32"
-                                            Height="32"
-                                            Classes="hover-lift"
-                                            Command="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).RemoveFastFlagCommand}"
-                                            CommandParameter="{Binding}"
-                                            CornerRadius="999"
-                                            ToolTip.Tip="Remove FastFlag">
-                                            <Image
-                                                Margin="-5"
-                                                RenderOptions.BitmapInterpolationMode="HighQuality"
-                                                Source="avares://Sirstrap/Assets/remove.png" />
-                                        </Button>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <Grid ColumnDefinitions="*,*,Auto">
-                            <TextBox
-                                Grid.Column="0"
-                                Margin="0,0,5,0"
-                                BorderThickness="0"
-                                CornerRadius="999"
-                                PlaceholderText="Name"
-                                Text="{Binding NewFastFlagName}" />
-                            <TextBox
-                                Grid.Column="1"
-                                Margin="0,0,5,0"
-                                BorderThickness="0"
-                                CornerRadius="999"
-                                PlaceholderText="Value"
-                                Text="{Binding NewFastFlagValue}" />
-                            <Button
-                                Grid.Column="2"
-                                Width="32"
-                                Height="32"
-                                Classes="hover-lift"
-                                Command="{Binding AddFastFlagCommand}"
-                                CornerRadius="999"
-                                ToolTip.Tip="Add FastFlag">
-                                <Image
-                                    Margin="-5"
-                                    RenderOptions.BitmapInterpolationMode="HighQuality"
-                                    Source="avares://Sirstrap/Assets/add.png" />
-                            </Button>
-                        </Grid>
-                    </StackPanel>
+                    <Grid Margin="0,74,15,47" behaviors:LiquidGlass.IsContentTransitionEnabled="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="SettingsLabel" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="SettingsEditor" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}"
+                            Spacing="5">
+                            <ItemsControl ItemsSource="{Binding FastFlags}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Spacing="5" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:FastFlagEntry">
+                                        <Grid ColumnDefinitions="*,*,Auto" Opacity="{Binding Opacity}">
+                                            <TextBox
+                                                Grid.Column="0"
+                                                Margin="0,0,5,0"
+                                                BorderThickness="0"
+                                                CornerRadius="999"
+                                                PlaceholderText="{loc:Tr FastFlags_Name}"
+                                                Text="{Binding Name}" />
+                                            <TextBox
+                                                Grid.Column="1"
+                                                Margin="0,0,5,0"
+                                                BorderThickness="0"
+                                                CornerRadius="999"
+                                                PlaceholderText="{loc:Tr FastFlags_Value}"
+                                                Text="{Binding Value}" />
+                                            <Button
+                                                Grid.Column="2"
+                                                Width="32"
+                                                Height="32"
+                                                Classes="hover-lift"
+                                                Command="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).RemoveFastFlagCommand}"
+                                                CommandParameter="{Binding}"
+                                                CornerRadius="999"
+                                                ToolTip.Tip="{loc:Tr FastFlags_Remove}">
+                                                <Image
+                                                    Margin="0"
+                                                    RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                    Source="avares://Sirstrap/Assets/remove.png" />
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Grid ColumnDefinitions="*,*,Auto">
+                                <TextBox
+                                    Grid.Column="0"
+                                    Margin="0,0,5,0"
+                                    BorderThickness="0"
+                                    CornerRadius="999"
+                                    PlaceholderText="{loc:Tr FastFlags_Name}"
+                                    Text="{Binding NewFastFlagName}" />
+                                <TextBox
+                                    Grid.Column="1"
+                                    Margin="0,0,5,0"
+                                    BorderThickness="0"
+                                    CornerRadius="999"
+                                    PlaceholderText="{loc:Tr FastFlags_Value}"
+                                    Text="{Binding NewFastFlagValue}" />
+                                <Button
+                                    Grid.Column="2"
+                                    Width="32"
+                                    Height="32"
+                                    Classes="hover-lift"
+                                    Command="{Binding AddFastFlagCommand}"
+                                    CornerRadius="999"
+                                    ToolTip.Tip="{loc:Tr FastFlags_Add}">
+                                    <Image
+                                        Margin="0"
+                                        RenderOptions.BitmapInterpolationMode="HighQuality"
+                                        Source="avares://Sirstrap/Assets/add.png" />
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
                 </ScrollViewer>
                 <ScrollViewer
                     behaviors:ScrollFade.IsEnabled="True"
                     HorizontalScrollBarVisibility="Disabled"
                     IsVisible="{Binding IsFastFlagsRawVisible}"
                     VerticalScrollBarVisibility="Auto">
-                    <TextBox
-                        Width="500"
-                        Margin="0,47,15,47"
-                        AcceptsReturn="True"
-                        BorderThickness="0"
-                        CornerRadius="5"
-                        IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}"
-                        Text="{Binding RawText}"
-                        TextWrapping="Wrap" />
+                    <Grid Margin="0,74,15,47" behaviors:LiquidGlass.IsContentTransitionEnabled="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="SettingsLabel" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="SettingsEditor" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            AcceptsReturn="True"
+                            BorderThickness="0"
+                            CornerRadius="5"
+                            IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}"
+                            Text="{Binding RawText}"
+                            TextWrapping="Wrap"
+                            ToolTip.Tip="{loc:Tr FastFlags_RawTip}" />
+                    </Grid>
                 </ScrollViewer>
                 <Border
                     Margin="0,0,15,0"
@@ -405,76 +493,97 @@
                         behaviors:StaggeredReveal.IsEnabled="True"
                         Orientation="Horizontal"
                         Spacing="5">
+                        <Panel>
+                            <ListBox
+                                Background="Transparent"
+                                behaviors:LiquidGlass.IsTabIndicatorEnabled="True"
+                                BorderThickness="0"
+                                ItemsSource="{Binding SettingsTabs}"
+                                Padding="0"
+                                SelectedItem="{Binding SelectedSettingsTab}">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="5" />
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:SettingsTabOption">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <Border
+                                                VerticalAlignment="Center"
+                                                Background="#33e0b341"
+                                                CornerRadius="999"
+                                                IsVisible="{Binding IsPreview}"
+                                                Padding="5,1">
+                                                <TextBlock
+                                                    FontSize="9"
+                                                    Foreground="#e0b341"
+                                                    Text="PREVIEW" />
+                                            </Border>
+                                            <TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                                <ListBox.Styles>
+                                    <Style Selector="ListBoxItem">
+                                        <Setter Property="MinHeight" Value="0" />
+                                        <Setter Property="Height" Value="32" />
+                                        <Setter Property="Padding" Value="10,0" />
+                                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                                        <Setter Property="CornerRadius" Value="999" />
+                                    </Style>
+                                    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                                        <Setter Property="Background" Value="#22ffffff" />
+                                    </Style>
+                                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+                                        <Setter Property="Background" Value="Transparent" />
+                                    </Style>
+                                </ListBox.Styles>
+                            </ListBox>
+                        </Panel>
+                    </StackPanel>
+                </Border>
+                <Border
+                    Margin="0,47,15,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Background="#2a323c"
+                    behaviors:LiquidGlass.IsContentTransitionEnabled="True"
+                    BoxShadow="0 0 10 0 #212830"
+                    CornerRadius="999"
+                    IsVisible="{Binding IsFastFlagsTabSelected}"
+                    Padding="3">
+                    <Panel>
                         <ListBox
                             Background="Transparent"
+                            behaviors:LiquidGlass.IsTabIndicatorEnabled="True"
                             BorderThickness="0"
-                            ItemsSource="{Binding SettingsTabs}"
+                            ItemsSource="{Binding FastFlagsTabs}"
                             Padding="0"
-                            SelectedItem="{Binding SelectedSettingsTab}">
+                            SelectedItem="{Binding SelectedFastFlagsTab}">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" Spacing="5" />
+                                    <StackPanel Orientation="Horizontal" Spacing="3" />
                                 </ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
-                            <ListBox.ItemTemplate>
-                                <DataTemplate x:DataType="models:SettingsTabOption">
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
-                                        <Panel IsVisible="{Binding HasSubTabs}">
-                                            <StackPanel
-                                                IsVisible="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).IsFastFlagsTabSelected}"
-                                                Orientation="Horizontal"
-                                                Spacing="5">
-                                                <ListBox
-                                                    Background="Transparent"
-                                                    BorderThickness="0"
-                                                    ItemsSource="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).FastFlagsTabs}"
-                                                    Padding="0"
-                                                    SelectedItem="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).SelectedFastFlagsTab}">
-                                                    <ListBox.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <StackPanel Orientation="Horizontal" Spacing="5" />
-                                                        </ItemsPanelTemplate>
-                                                    </ListBox.ItemsPanel>
-                                                    <ListBox.Styles>
-                                                        <Style Selector="ListBoxItem">
-                                                            <Setter Property="MinHeight" Value="0" />
-                                                            <Setter Property="Height" Value="22" />
-                                                            <Setter Property="Padding" Value="8,0" />
-                                                            <Setter Property="VerticalContentAlignment" Value="Center" />
-                                                            <Setter Property="CornerRadius" Value="999" />
-                                                            <Setter Property="FontSize" Value="10" />
-                                                        </Style>
-                                                        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                                                            <Setter Property="Background" Value="#22ffffff" />
-                                                        </Style>
-                                                        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-                                                            <Setter Property="Background" Value="#33ffffff" />
-                                                        </Style>
-                                                    </ListBox.Styles>
-                                                </ListBox>
-                                            </StackPanel>
-                                        </Panel>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
                             <ListBox.Styles>
                                 <Style Selector="ListBoxItem">
                                     <Setter Property="MinHeight" Value="0" />
-                                    <Setter Property="Height" Value="32" />
-                                    <Setter Property="Padding" Value="10,0" />
+                                    <Setter Property="Height" Value="16" />
+                                    <Setter Property="Padding" Value="8,0" />
                                     <Setter Property="VerticalContentAlignment" Value="Center" />
                                     <Setter Property="CornerRadius" Value="999" />
+                                    <Setter Property="FontSize" Value="9" />
                                 </Style>
                                 <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
                                     <Setter Property="Background" Value="#22ffffff" />
                                 </Style>
                                 <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-                                    <Setter Property="Background" Value="#33ffffff" />
+                                    <Setter Property="Background" Value="Transparent" />
                                 </Style>
                             </ListBox.Styles>
                         </ListBox>
-                    </StackPanel>
+                    </Panel>
                 </Border>
                 <Border
                     HorizontalAlignment="Left"
@@ -496,8 +605,9 @@
                             VerticalContentAlignment="Center"
                             BorderThickness="0"
                             CornerRadius="999"
-                            PlaceholderText="Search"
-                            Text="{Binding SearchText}" />
+                            PlaceholderText="{loc:Tr Settings_Search}"
+                            Text="{Binding SearchText}"
+                            ToolTip.Tip="{loc:Tr Settings_SearchTip}" />
                     </StackPanel>
                 </Border>
                 <Border
@@ -520,7 +630,7 @@
                             Classes="hover-lift"
                             Command="{Binding UninstallCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="Uninstall Sirstrap">
+                            ToolTip.Tip="{loc:Tr Settings_Uninstall}">
                             <Button.Background>
                                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
                                     <GradientStop Offset="0" Color="#73bf6a6a" />
@@ -538,7 +648,7 @@
                             Classes="hover-lift"
                             Command="{Binding OpenIniFileCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="Open raw settings">
+                            ToolTip.Tip="{loc:Tr Settings_OpenRawSettings}">
                             <Image
                                 Margin="0"
                                 RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -550,7 +660,7 @@
                             Classes="hover-lift"
                             Command="{Binding SaveCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="Save settings">
+                            ToolTip.Tip="{loc:Tr Settings_Save}">
                             <Image
                                 Margin="0"
                                 RenderOptions.BitmapInterpolationMode="HighQuality"

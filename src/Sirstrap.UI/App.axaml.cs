@@ -57,6 +57,20 @@ namespace Sirstrap.UI
             }
         }
 
+        public static void ApplyLanguage()
+        {
+            try
+            {
+                Program.Services.GetRequiredService<ISettingsService>().LoadSettings();
+
+                Strings.Instance.SetLanguage(Program.Services.GetRequiredService<SirstrapConfiguration>().SirstrapLanguage);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "[!] Failed to apply the language.");
+            }
+        }
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -70,6 +84,8 @@ namespace Sirstrap.UI
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                ApplyLanguage();
+
                 desktop.MainWindow = new MainWindow { DataContext = Program.Services.GetRequiredService<MainWindowViewModel>() };
 
                 ApplyFontFamily();

@@ -12,7 +12,7 @@ set "version=%version:-beta=%"
 
 echo Releasing Sirstrap.CLI...
 
-%wingetcreate_path% update --submit --token "%sybau%" --urls "https://github.com/massimopaganigh/sirstrap/releases/download/%version_raw%/Sirstrap.CLI_fat.zip" --version %version% Sirstrap.CLI
+%wingetcreate_path% update --submit --token "%sybau%" --urls "https://github.com/i-nagap/sirstrap/releases/download/%version_raw%/Sirstrap.CLI_fat.zip" --version %version% Sirstrap.CLI
 
 if %ERRORLEVEL% neq 0 (
     echo Release of Sirstrap.CLI failed.
@@ -21,7 +21,7 @@ if %ERRORLEVEL% neq 0 (
 
 echo Releasing Sirstrap.UI...
 
-%wingetcreate_path% update --submit --token "%sybau%" --urls "https://github.com/massimopaganigh/sirstrap/releases/download/%version_raw%/Sirstrap.UI_fat.zip" --version %version% Sirstrap.UI
+%wingetcreate_path% update --submit --token "%sybau%" --urls "https://github.com/i-nagap/sirstrap/releases/download/%version_raw%/Sirstrap.UI_fat.zip" --version %version% Sirstrap.UI
 
 if %ERRORLEVEL% neq 0 (
     echo Release of Sirstrap.UI failed.

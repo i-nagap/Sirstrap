@@ -1,7 +1,7 @@
 import { ACCENT_BORDER_HOVER, ACCENT_TEXT_HOVER, type Accent } from "@/config/accents";
 import type { Contributor } from "@/services/contributor-repository";
 
-const AUTHOR = "massimopaganigh";
+const AUTHOR = "i-nagap";
 const AUTHOR_URL = `https://github.com/${AUTHOR}`;
 const AUTHOR_AVATAR = `https://github.com/${AUTHOR}.png`;
 const MAX_AVATARS = 8;

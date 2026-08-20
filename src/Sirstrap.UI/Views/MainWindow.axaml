@@ -5,6 +5,7 @@
     xmlns:behaviors="using:Sirstrap.UI.Behaviors"
     xmlns:common="using:Sirstrap.UI.Views.Common"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:loc="using:Sirstrap.UI.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Sirstrap.UI.Models"
     xmlns:vm="using:Sirstrap.UI.ViewModels"
@@ -76,7 +77,7 @@
                                 Classes="hover-lift"
                                 Command="{Binding OpenGitHubProfileCommand}"
                                 CornerRadius="999"
-                                ToolTip.Tip="Open GitHub profile">
+                                ToolTip.Tip="{loc:Tr Main_OpenProfile}">
                                 <Panel Width="32" Height="32">
                                     <Border
                                         Background="#33ffffff"
@@ -120,7 +121,7 @@
                                 Classes="hover-lift"
                                 Command="{Binding OpenGitHubCommand}"
                                 CornerRadius="999"
-                                ToolTip.Tip="Open GitHub repository">
+                                ToolTip.Tip="{loc:Tr Main_OpenRepository}">
                                 <Panel Width="32" Height="32">
                                     <Border
                                         Background="#33ffffff"
@@ -182,7 +183,7 @@
                                 Classes="hover-lift"
                                 Command="{Binding LogoutCommand}"
                                 CornerRadius="999"
-                                ToolTip.Tip="Logout from SirHurt">
+                                ToolTip.Tip="{loc:Tr Main_Logout}">
                                 <Image
                                     Margin="0"
                                     RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -211,7 +212,7 @@
                             Classes="hover-lift"
                             Command="{Binding OpenSettingsCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="Open settings">
+                            ToolTip.Tip="{loc:Tr Main_OpenSettings}">
                             <Image
                                 Margin="0"
                                 RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -224,7 +225,7 @@
                             Command="{Binding RunCommand}"
                             CornerRadius="16"
                             IsEnabled="{Binding ShowLaunchButton}"
-                            ToolTip.Tip="Launch Roblox">
+                            ToolTip.Tip="{loc:Tr Main_Launch}">
                             <SplitButton.Background>
                                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
                                     <GradientStop Offset="0" Color="#736abf6a" />
@@ -262,9 +263,7 @@
                                         </ListBox.Styles>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate x:DataType="models:VersionSourceOption">
-                                                <TextBlock
-                                                    Text="{Binding Display}"
-                                                    TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>

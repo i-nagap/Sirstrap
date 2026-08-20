@@ -22,6 +22,8 @@ namespace Sirstrap.Core.Settings
 
         public string SirstrapFontFamily { get; set; } = "JetBrains Mono";
 
+        public string SirstrapLanguage { get; set; } = string.Empty;
+
         public bool SirstrapTelemetry { get; set; } = true;
 
         public TrayMode SirstrapTrayMode { get; set; } = TrayMode.None;

@@ -3,10 +3,10 @@
     public partial class SettingsWindowViewModel : ViewModelBase
     {
 #pragma warning disable S1075 // fixed Sirstrap project endpoint, not a deployment specific path
-        private const string ANNOUNCEMENTS_URI = "https://raw.githubusercontent.com/massimopaganigh/Sirstrap/main/announcements.txt";
+        private const string ANNOUNCEMENTS_URI = "https://raw.githubusercontent.com/i-nagap/Sirstrap/main/announcements.txt";
 #pragma warning restore S1075
 
-        private static readonly SettingsTabOption _fastFlagsTab = new("FastFlags", "FastFlags", HasSubTabs: true);
+        private static readonly SettingsTabOption _fastFlagsTab = new("FastFlags", "FastFlags", IsPreview: true);
 
         private readonly HttpClient _httpClient;
         private readonly ICleanupService _cleanupService;
@@ -44,6 +44,9 @@
         private VersionSourceOption? _selectedVersionSource;
 
         [ObservableProperty]
+        private LanguageOption _selectedLanguage;
+
+        [ObservableProperty]
         private string _searchText = string.Empty;
 
         [ObservableProperty]
@@ -75,6 +78,8 @@
             _cleanupService = cleanupService;
             _fastFlagService = fastFlagService;
             _selectedSettingsTab = SettingsTabs[0];
+
+            _selectedLanguage = Languages.FirstOrDefault(option => string.Equals(option.Value, settings.SirstrapLanguage, StringComparison.OrdinalIgnoreCase)) ?? Languages[0];
 
             GetFontFamilies();
             ApplyFastFlagsSearch();
@@ -151,6 +156,14 @@
             RawText = _fastFlagService.SerializeFlags(GetFastFlags());
 
             _isRefreshingRawText = false;
+        }
+
+        partial void OnSelectedLanguageChanged(LanguageOption value)
+        {
+            if (value == null)
+                return;
+
+            Settings.SirstrapLanguage = value.Value;
         }
 
         partial void OnSelectedVersionSourceChanged(VersionSourceOption? value)
@@ -405,6 +418,7 @@
                 {
                     Settings.Set();
 
+                    App.ApplyLanguage();
                     App.ApplyFontFamily();
 
                     Dispatcher.UIThread.Invoke(() =>
@@ -432,6 +446,8 @@
             new("SirHurt", "SirHurt"),
             new("Sirstrap", "Sirstrap")
         ];
+
+        public IReadOnlyList<LanguageOption> Languages { get; } = Strings.Languages;
 
         public IReadOnlyList<TrayMode> TrayModes { get; } = Enum.GetValues<TrayMode>();
     }
