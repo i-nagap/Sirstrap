@@ -3,7 +3,7 @@
     public partial class SettingsWindowViewModel : ViewModelBase
     {
 #pragma warning disable S1075 // fixed Sirstrap project endpoint, not a deployment specific path
-        private const string ANNOUNCEMENTS_URI = "https://raw.githubusercontent.com/massimopaganigh/Sirstrap/main/announcements.txt";
+        private const string ANNOUNCEMENTS_URI = "https://raw.githubusercontent.com/i-nagap/Sirstrap/main/announcements.txt";
 #pragma warning restore S1075
 
         private static readonly SettingsTabOption _fastFlagsTab = new("FastFlags", "FastFlags", IsPreview: true);

@@ -14,9 +14,9 @@ namespace Sirstrap.UI.ViewModels
         private readonly IWeaoService _weaoService;
 
 #pragma warning disable S1075 // fixed Sirstrap project endpoints, not deployment specific paths
-        private const string GITHUB_PROFILE_URI = "https://github.com/massimopaganigh";
-        private const string LOGO_IMAGE_URI = "https://raw.githubusercontent.com/massimopaganigh/Sirstrap/main/images/SirstrapIcon.png";
-        private const string PROFILE_IMAGE_URI = "https://github.com/massimopaganigh.png";
+        private const string GITHUB_PROFILE_URI = "https://github.com/i-nagap";
+        private const string LOGO_IMAGE_URI = "https://raw.githubusercontent.com/i-nagap/Sirstrap/main/images/SirstrapIcon.png";
+        private const string PROFILE_IMAGE_URI = "https://github.com/i-nagap.png";
 #pragma warning restore S1075
 
         [ObservableProperty]
@@ -297,7 +297,7 @@ namespace Sirstrap.UI.ViewModels
             {
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "https://github.com/massimopaganigh/Sirstrap",
+                    FileName = "https://github.com/i-nagap/Sirstrap",
                     UseShellExecute = true
                 });
                 Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHub), 1);
