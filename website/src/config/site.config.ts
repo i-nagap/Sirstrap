@@ -1,4 +1,4 @@
-export const ACCOUNTS = ["massimopaganigh", "i-nagap"];
+export const ACCOUNTS = ["i-nagap"];
 export const OWNER = ACCOUNTS[0];
 export const MAIN_REPO = `${OWNER}/Sirstrap`;
 export const REPO = `https://github.com/${MAIN_REPO}`;
