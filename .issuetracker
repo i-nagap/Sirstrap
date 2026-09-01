@@ -1,3 +1,4 @@
-[issuetracker "GitHub ISSUE"]
-	regex = "#(\\d+)"
-	url = https://github.com/i-nagap/Sirstrap/issues/$1
+issuetracker:
+  GitHub ISSUE:
+  regex: "#(\\d+)"
+  url: "https://github.com/i-nagap/Sirstrap/issues/$1"
