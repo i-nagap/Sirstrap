@@ -92,7 +92,7 @@ namespace Sirstrap.Core
         private static void AddUpdate(IServiceCollection services)
         {
             services.TryAddSingleton<ISirstrapVersion, SirstrapVersion>();
-            services.TryAddSingleton<GitHubReleaseClient>();
+            services.TryAddSingleton<SirstrapReleaseClient>();
             services.TryAddSingleton<UpdateApplier>();
             services.TryAddSingleton<ISirstrapUpdateService, SirstrapUpdateService>();
         }

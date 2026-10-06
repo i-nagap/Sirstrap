@@ -1,12 +1,12 @@
 ﻿namespace Sirstrap.Core.Tests.Update
 {
-    public class GitHubReleaseClientTests
+    public class SirstrapReleaseClientTests
     {
         [Fact]
         public async Task GetReleasesAsync_ParsesReleaseArray()
         {
             HttpClient client = StubHttpMessageHandler.Client(HttpStatusCode.OK, """[{"tag_name":"v1.0.0.0-beta","draft":false,"body":"a"},{"tag_name":"v2.0.0.0-beta","draft":true,"body":"b"}]""");
-            GitHubReleaseClient releaseClient = new(client);
+            SirstrapReleaseClient releaseClient = new(client);
 
             var releases = await releaseClient.GetReleasesAsync();
 
@@ -16,25 +16,21 @@
         }
 
         [Fact]
-        public async Task GetReleasesAsync_FallsBackToTheNextAccount()
+        public async Task GetReleasesAsync_RequestsTheSirstrapReleasesEndpoint()
         {
-            StubHttpMessageHandler handler = new(request => request.RequestUri!.ToString().Contains(GitHubAccounts.Primary, StringComparison.OrdinalIgnoreCase)
-                ? new HttpResponseMessage(HttpStatusCode.NotFound)
-                : new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""[{"tag_name":"v3.0.0.0-beta","draft":false,"body":"c"}]""") });
-            GitHubReleaseClient releaseClient = new(new HttpClient(handler));
+            StubHttpMessageHandler handler = new(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("[]") });
+            SirstrapReleaseClient releaseClient = new(new HttpClient(handler));
 
-            var releases = await releaseClient.GetReleasesAsync();
+            await releaseClient.GetReleasesAsync();
 
-            Assert.Single(releases);
-            Assert.Equal("v3.0.0.0-beta", releases[0].TagName);
-            Assert.Equal(GitHubAccounts.All.Count, handler.CallCount);
+            Assert.Equal("https://sirstrap.com/releases/", Assert.Single(handler.RequestedUris));
         }
 
         [Fact]
         public async Task GetReleasesAsync_ReturnsEmpty_OnException()
         {
             HttpClient client = StubHttpMessageHandler.Client(_ => throw new HttpRequestException("down"));
-            GitHubReleaseClient releaseClient = new(client);
+            SirstrapReleaseClient releaseClient = new(client);
 
             Assert.Empty(await releaseClient.GetReleasesAsync());
         }
@@ -43,7 +39,7 @@
         public async Task GetReleasesAsync_ReturnsEmpty_OnMalformedJson()
         {
             HttpClient client = StubHttpMessageHandler.Client(HttpStatusCode.OK, "not-json");
-            GitHubReleaseClient releaseClient = new(client);
+            SirstrapReleaseClient releaseClient = new(client);
 
             Assert.Empty(await releaseClient.GetReleasesAsync());
         }

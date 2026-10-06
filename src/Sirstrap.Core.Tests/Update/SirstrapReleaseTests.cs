@@ -1,13 +1,13 @@
 namespace Sirstrap.Core.Tests.Update
 {
-    public class GitHubReleaseTests
+    public class SirstrapReleaseTests
     {
         private static JsonElement Parse(string json) => JsonDocument.Parse(json).RootElement;
 
         [Fact]
         public void FromJson_ParsesAllFields()
         {
-            GitHubRelease release = GitHubRelease.FromJson(Parse("""
+            SirstrapRelease release = SirstrapRelease.FromJson(Parse("""
             {
                 "tag_name": "v1.0.0.0-beta",
                 "draft": true,
@@ -28,7 +28,7 @@ namespace Sirstrap.Core.Tests.Update
         [Fact]
         public void FromJson_UsesDefaults_WhenFieldsMissing()
         {
-            GitHubRelease release = GitHubRelease.FromJson(Parse("{}"));
+            SirstrapRelease release = SirstrapRelease.FromJson(Parse("{}"));
 
             Assert.Equal(string.Empty, release.TagName);
             Assert.False(release.IsDraft);
@@ -39,7 +39,7 @@ namespace Sirstrap.Core.Tests.Update
         [Fact]
         public void FromJson_SkipsAssetsWithoutNames()
         {
-            GitHubRelease release = GitHubRelease.FromJson(Parse("""
+            SirstrapRelease release = SirstrapRelease.FromJson(Parse("""
             { "assets": [ { "browser_download_url": "https://x" }, { "name": "", "browser_download_url": "https://y" }, { "name": "ok.zip" } ] }
             """));
 
@@ -50,7 +50,7 @@ namespace Sirstrap.Core.Tests.Update
         [Fact]
         public void FindAssetDownloadUri_IsCaseInsensitive_AndReturnsEmptyWhenMissing()
         {
-            GitHubRelease release = GitHubRelease.FromJson(Parse("""
+            SirstrapRelease release = SirstrapRelease.FromJson(Parse("""
             { "assets": [ { "name": "Sirstrap.CLI.zip", "browser_download_url": "https://example.com/cli.zip" } ] }
             """));
 

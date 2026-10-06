@@ -1,10 +1,10 @@
 namespace Sirstrap.Core.Update
 {
-    public sealed record GitHubReleaseAsset(string Name, string DownloadUri);
+    public sealed record SirstrapReleaseAsset(string Name, string DownloadUri);
 
-    public sealed record GitHubRelease(string TagName, bool IsDraft, string Body, IReadOnlyList<GitHubReleaseAsset> Assets)
+    public sealed record SirstrapRelease(string TagName, bool IsDraft, string Body, IReadOnlyList<SirstrapReleaseAsset> Assets)
     {
-        public static GitHubRelease FromJson(JsonElement element)
+        public static SirstrapRelease FromJson(JsonElement element)
         {
             var tagName = element.TryGetProperty("tag_name", out JsonElement tagNameElement)
                 ? tagNameElement.GetString() ?? string.Empty
@@ -14,15 +14,15 @@ namespace Sirstrap.Core.Update
                 ? bodyElement.GetString() ?? string.Empty
                 : string.Empty;
 
-            return new GitHubRelease(tagName, isDraft, body, ParseAssets(element));
+            return new SirstrapRelease(tagName, isDraft, body, ParseAssets(element));
         }
 
         public string FindAssetDownloadUri(string assetName)
             => Assets.FirstOrDefault(asset => asset.Name.Equals(assetName, StringComparison.OrdinalIgnoreCase))?.DownloadUri ?? string.Empty;
 
-        private static List<GitHubReleaseAsset> ParseAssets(JsonElement element)
+        private static List<SirstrapReleaseAsset> ParseAssets(JsonElement element)
         {
-            List<GitHubReleaseAsset> assets = [];
+            List<SirstrapReleaseAsset> assets = [];
 
             if (!element.TryGetProperty("assets", out JsonElement assetsElement))
                 return assets;
@@ -41,7 +41,7 @@ namespace Sirstrap.Core.Update
                     ? uriElement.GetString() ?? string.Empty
                     : string.Empty;
 
-                assets.Add(new GitHubReleaseAsset(name, downloadUri));
+                assets.Add(new SirstrapReleaseAsset(name, downloadUri));
             }
 
             return assets;

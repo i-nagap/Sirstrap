@@ -1,7 +1,7 @@
 namespace Sirstrap.Core.Update
 {
     public sealed class SirstrapUpdateService(
-        GitHubReleaseClient releaseClient,
+        SirstrapReleaseClient releaseClient,
         UpdateApplier updateApplier,
         SirstrapConfiguration sirstrapConfiguration,
         ISirstrapVersion sirstrapVersion,
@@ -89,11 +89,11 @@ namespace Sirstrap.Core.Update
             }
         }
 
-        private async Task<(Version Version, string Channel, GitHubRelease? Release)> FindLatestReleaseAsync()
+        private async Task<(Version Version, string Channel, SirstrapRelease? Release)> FindLatestReleaseAsync()
         {
             Version latestVersion = new("0.0.0.0");
             var latestChannel = string.Empty;
-            GitHubRelease? latestRelease = null;
+            SirstrapRelease? latestRelease = null;
 
             foreach (var release in await releaseClient.GetReleasesAsync())
             {

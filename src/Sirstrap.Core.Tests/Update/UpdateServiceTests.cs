@@ -6,7 +6,7 @@ namespace Sirstrap.Core.Tests.Update
         {
             telemetry = new RecordingPerformanceTelemetry();
 
-            return new SirstrapUpdateService(new GitHubReleaseClient(releasesClient), new UpdateApplier(new HttpClient()), config, version, telemetry);
+            return new SirstrapUpdateService(new SirstrapReleaseClient(releasesClient), new UpdateApplier(new HttpClient()), config, version, telemetry);
         }
 
         private static HttpClient ReleasesClient(string json) => StubHttpMessageHandler.Client(HttpStatusCode.OK, json);
