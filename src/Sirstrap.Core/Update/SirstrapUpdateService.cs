@@ -1,7 +1,7 @@
 namespace Sirstrap.Core.Update
 {
     public sealed class SirstrapUpdateService(
-        GitHubReleaseClient releaseClient,
+        SirstrapReleaseClient releaseClient,
         UpdateApplier updateApplier,
         SirstrapConfiguration sirstrapConfiguration,
         ISirstrapVersion sirstrapVersion,
