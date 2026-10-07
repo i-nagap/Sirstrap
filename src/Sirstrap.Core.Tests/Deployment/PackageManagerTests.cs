@@ -35,6 +35,37 @@ namespace Sirstrap.Core.Tests.Deployment
             Assert.Equal("app-bytes", entries["CustomExtra.zip"]);
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task DownloadWindowsArchiveAsync_VerifiesPackageChecksum(bool matches)
+        {
+            using TempDirectory temp = new();
+            FakePathManager pathManager = new(temp.Path);
+
+            byte[] packageBytes = System.Text.Encoding.UTF8.GetBytes("app-bytes");
+            string checksum = matches ? Convert.ToHexStringLower(System.Security.Cryptography.MD5.HashData(packageBytes)) : new string('0', 32);
+
+            HttpClient client = StubHttpMessageHandler.Client(request =>
+            {
+                string uri = request.RequestUri!.ToString();
+
+                if (uri.EndsWith("rbxPkgManifest.txt", StringComparison.Ordinal))
+                    return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent($"v0\nCustomExtra.zip\n{checksum}\n9\n9\n") };
+
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(packageBytes) };
+            });
+
+            Configuration configuration = new() { BinaryType = "WindowsPlayer", VersionHash = "v1" };
+
+            Task download = NewManager(client, pathManager).DownloadWindowsArchiveAsync(configuration);
+
+            if (matches)
+                await download;
+            else
+                await Assert.ThrowsAsync<InvalidOperationException>(() => download);
+        }
+
         [Fact]
         public async Task DownloadWindowsArchiveAsync_DoesNothing_WhenManifestInvalid()
         {

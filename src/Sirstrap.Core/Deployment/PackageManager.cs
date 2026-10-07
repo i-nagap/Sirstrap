@@ -79,7 +79,7 @@ namespace Sirstrap.Core.Deployment
 
                 await archiveWriter.AddTextEntryAsync("AppSettings.xml", APP_SETTINGS_XML);
 
-                long totalBytes = await DownloadPackagesAsync(configuration, manifest.Packages, archiveWriter);
+                long totalBytes = await DownloadPackagesAsync(configuration, manifest, archiveWriter);
 
                 Log.Information("[*] Downloaded all the Windows packages.");
 
@@ -99,13 +99,13 @@ namespace Sirstrap.Core.Deployment
             }
         }
 
-        private async Task<int> DownloadPackageAsync(Configuration configuration, string package, PackageArchiveWriter archiveWriter)
+        private async Task<int> DownloadPackageAsync(Configuration configuration, string package, string? expectedChecksum, PackageArchiveWriter archiveWriter)
         {
             try
             {
                 Log.Information("[*] Downloading the package {Package}...", package);
 
-                byte[]? packageBytes = await GetPackageBytesAsync(configuration, package)
+                byte[]? packageBytes = await GetPackageBytesAsync(configuration, package, expectedChecksum)
                     ?? throw new InvalidOperationException($"No bytes were downloaded for the package: {package}.");
 
                 int byteCount = packageBytes.Length;
@@ -124,20 +124,20 @@ namespace Sirstrap.Core.Deployment
             }
         }
 
-        private async Task<long> DownloadPackagesAsync(Configuration configuration, IReadOnlyList<string> packages, PackageArchiveWriter archiveWriter)
+        private async Task<long> DownloadPackagesAsync(Configuration configuration, Manifest manifest, PackageArchiveWriter archiveWriter)
         {
             int downloadConcurrency = Math.Max(Environment.ProcessorCount, 8);
 
             using SemaphoreSlim semaphore = new(downloadConcurrency, downloadConcurrency);
             long totalBytes = 0;
 
-            IEnumerable<Task> downloadTasks = packages.Select(async package =>
+            IEnumerable<Task> downloadTasks = manifest.Packages.Select(async package =>
             {
                 await semaphore.WaitAsync();
 
                 try
                 {
-                    int bytes = await DownloadPackageAsync(configuration, package, archiveWriter);
+                    int bytes = await DownloadPackageAsync(configuration, package, manifest.Checksums.GetValueOrDefault(package), archiveWriter);
 
                     Interlocked.Add(ref totalBytes, bytes);
                 }
@@ -157,11 +157,11 @@ namespace Sirstrap.Core.Deployment
                 ? CompressionLevel.NoCompression
                 : CompressionLevel.Fastest;
 
-        private async Task<byte[]?> GetPackageBytesAsync(Configuration configuration, string package)
+        private async Task<byte[]?> GetPackageBytesAsync(Configuration configuration, string package, string? expectedChecksum = null)
         {
             byte[]? packageBytes = await HttpClientExtension.GetByteArrayAsync(httpClient, robloxUriFactory.GetPackageUri(configuration, package));
 
-            if (packageBytes != null)
+            if (IsIntact(package, packageBytes, expectedChecksum))
                 return packageBytes;
 
             string primaryCdnUri = sirstrapConfiguration.ResolvedRobloxCdnUri;
@@ -175,11 +175,31 @@ namespace Sirstrap.Core.Deployment
 
                 packageBytes = await HttpClientExtension.GetByteArrayAsync(httpClient, robloxUriFactory.GetPackageUri(configuration, package, fallbackCdnUri));
 
-                if (packageBytes != null)
+                if (IsIntact(package, packageBytes, expectedChecksum))
                     return packageBytes;
             }
 
             return null;
+        }
+
+        private static bool IsIntact(string package, byte[]? packageBytes, string? expectedChecksum)
+        {
+            if (packageBytes == null)
+                return false;
+
+            if (expectedChecksum == null)
+                return true;
+
+#pragma warning disable S4790 // Use a stronger hashing algorithm - Roblox manifests only publish MD5 checksums.
+            string actualChecksum = Convert.ToHexStringLower(System.Security.Cryptography.MD5.HashData(packageBytes));
+#pragma warning restore S4790
+
+            if (actualChecksum == expectedChecksum)
+                return true;
+
+            Log.Warning("[!] The package {Package} failed the checksum verification (expected {ExpectedChecksum}, got {ActualChecksum}).", package, expectedChecksum, actualChecksum);
+
+            return false;
         }
 
         private async Task<string?> GetManifestContentAsync(Configuration configuration)

@@ -23,6 +23,15 @@ namespace Sirstrap.Core.Tests.Deployment
         }
 
         [Fact]
+        public void Parse_CollectsChecksums_FromLineAfterPackage()
+        {
+            Manifest manifest = ManifestParser.Parse("v0\nRobloxApp.zip\nABCDEF0123456789abcdef0123456789\n100\n200\nLibraries.zip\nnot-a-hash\n");
+
+            Assert.Equal("abcdef0123456789abcdef0123456789", manifest.Checksums["RobloxApp.zip"]);
+            Assert.False(manifest.Checksums.ContainsKey("Libraries.zip"));
+        }
+
+        [Fact]
         public void Parse_MarksInvalid_WhenFirstLineIsNotV0()
         {
             Manifest manifest = ManifestParser.Parse("v1\nRobloxApp.zip");
