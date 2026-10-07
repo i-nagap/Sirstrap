@@ -19,7 +19,11 @@ namespace Sirstrap.UI.Localization
         [
             new(string.Empty, "System"),
             new("en", "English"),
-            new("it", "Italiano")
+            new("de", "Deutsch"),
+            new("es", "Español"),
+            new("fr", "Français"),
+            new("it", "Italiano"),
+            new("vec", "Vèneto")
         ];
 
         public string this[string key] => _resourceManager.GetString(key, _culture) ?? key;

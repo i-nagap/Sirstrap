@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Main_OpenProfile" xml:space="preserve">
+    <value>Verzi el profilo GitHub de l'autor</value>
+  </data>
+  <data name="Main_OpenRepository" xml:space="preserve">
+    <value>Verzi el repository de Sirstrap so GitHub</value>
+  </data>
+  <data name="Main_Logout" xml:space="preserve">
+    <value>Va fora da l'account SirHurt</value>
+  </data>
+  <data name="Main_OpenSettings" xml:space="preserve">
+    <value>Verzi łe inpostasion de Sirstrap</value>
+  </data>
+  <data name="Main_Launch" xml:space="preserve">
+    <value>Taca Roblox, o dòpara ła frecia par sièrnar da indove ciapar ła version</value>
+  </data>
+
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Inpostasion</value>
+  </data>
+  <data name="Settings_Search" xml:space="preserve">
+    <value>Serca</value>
+  </data>
+  <data name="Settings_SearchTip" xml:space="preserve">
+    <value>Filtra łe inpostasion par nome</value>
+  </data>
+  <data name="Settings_Uninstall" xml:space="preserve">
+    <value>Cava Sirstrap, i so dati e el so gestor de protocolo da sto computer</value>
+  </data>
+  <data name="Settings_OpenRawSettings" xml:space="preserve">
+    <value>Verzi Sirstrap.ini par canbiar łe inpostasion come testo senplice</value>
+  </data>
+  <data name="Settings_Save" xml:space="preserve">
+    <value>Salva łe inpostasion e sara sta finestra</value>
+  </data>
+
+  <data name="Tab_All" xml:space="preserve">
+    <value>Tute</value>
+  </data>
+  <data name="Tab_FastFlags" xml:space="preserve">
+    <value>FastFlags</value>
+  </data>
+  <data name="Tab_Roblox" xml:space="preserve">
+    <value>Roblox</value>
+  </data>
+  <data name="Tab_SirHurt" xml:space="preserve">
+    <value>SirHurt</value>
+  </data>
+  <data name="Tab_Sirstrap" xml:space="preserve">
+    <value>Sirstrap</value>
+  </data>
+
+  <data name="FastFlags_Name" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="FastFlags_Value" xml:space="preserve">
+    <value>Vałor</value>
+  </data>
+  <data name="FastFlags_Add" xml:space="preserve">
+    <value>Zonta sto FastFlag a ła lista</value>
+  </data>
+  <data name="FastFlags_Remove" xml:space="preserve">
+    <value>Cava sto FastFlag da ła lista</value>
+  </data>
+  <data name="FastFlags_RawTip" xml:space="preserve">
+    <value>Canbia tuti i FastFlag insieme, come JSON gresso</value>
+  </data>
+
+  <data name="Settings_RobloxFastFlagsEnabled" xml:space="preserve">
+    <value>Ativa i FastFlag de Roblox:</value>
+  </data>
+  <data name="Settings_RobloxFastFlagsEnabledTip" xml:space="preserve">
+    <value>Àplica i FastFlag de ła scheda FastFlags ogni volta che Roblox el taca</value>
+  </data>
+  <data name="Settings_RobloxIncognito" xml:space="preserve">
+    <value>Ativa Roblox in incognito:</value>
+  </data>
+  <data name="Settings_RobloxIncognitoTip" xml:space="preserve">
+    <value>Meti da parte ła carteła dei dati locałi de Roblox mentre se zuga, cusì ła sesion no ła łasa trase. Ghe vołe ła multi-istansa</value>
+  </data>
+  <data name="Settings_RobloxMultiInstance" xml:space="preserve">
+    <value>Ativa ła multi-istansa de Roblox:</value>
+  </data>
+  <data name="Settings_RobloxMultiInstanceTip" xml:space="preserve">
+    <value>Łasa ndar pì de un client Roblox insieme</value>
+  </data>
+  <data name="Settings_RobloxCdnUriOverride" xml:space="preserve">
+    <value>URI CDN de Roblox parsonałizà:</value>
+  </data>
+  <data name="Settings_RobloxCdnUriOverrideTip" xml:space="preserve">
+    <value>Descarga Roblox da sta CDN invese che da ła pì veloce che trova Sirstrap. Łasa vodo par sièrnarla in automatico</value>
+  </data>
+  <data name="Settings_RobloxInstallationPath" xml:space="preserve">
+    <value>Percorso de instałasion de Roblox:</value>
+  </data>
+  <data name="Settings_RobloxInstallationPathTip" xml:space="preserve">
+    <value>Carteła indove Sirstrap el instała e el tien łe version de Roblox</value>
+  </data>
+  <data name="Settings_BrowseInstallationPath" xml:space="preserve">
+    <value>Sièrni ła carteła de instałasion de Roblox</value>
+  </data>
+  <data name="Settings_RobloxVersionOverride" xml:space="preserve">
+    <value>Version de Roblox parsonałizà:</value>
+  </data>
+  <data name="Settings_RobloxVersionOverrideTip" xml:space="preserve">
+    <value>Distribuisi proprio sto hash de version invese de queło dato da ła sorgente. Łasa vodo par ndarghe drio a ła sorgente</value>
+  </data>
+  <data name="Settings_RobloxVersionSource" xml:space="preserve">
+    <value>Sorgente de ła version de Roblox:</value>
+  </data>
+  <data name="Settings_RobloxVersionSourceTip" xml:space="preserve">
+    <value>Indove Sirstrap el serca quała version de Roblox distribuir</value>
+  </data>
+
+  <data name="Settings_CleanerEnabled" xml:space="preserve">
+    <value>Ativa SirHurt Cleaner:</value>
+  </data>
+  <data name="Settings_CleanerEnabledTip" xml:space="preserve">
+    <value>Inpisa el cleaner che el scancela i dati de Roblox e Sirstrap da sto computer</value>
+  </data>
+  <data name="Settings_Cleaner" xml:space="preserve">
+    <value>SirHurt Cleaner:</value>
+  </data>
+  <data name="Settings_CleanerTip" xml:space="preserve">
+    <value>Sièrni quando el cleaner el va e quanto el cava</value>
+  </data>
+  <data name="Settings_CleanerCleanOnLaunch" xml:space="preserve">
+    <value>Neta a l'avio</value>
+  </data>
+  <data name="Settings_CleanerCleanOnLaunchTip" xml:space="preserve">
+    <value>Fa ndar el cleaner subito prima che Roblox el taca</value>
+  </data>
+  <data name="Settings_CleanerCleanOnExit" xml:space="preserve">
+    <value>Neta a ła sarada</value>
+  </data>
+  <data name="Settings_CleanerCleanOnExitTip" xml:space="preserve">
+    <value>Fa ndar el cleaner subito dopo che Roblox el se sara</value>
+  </data>
+  <data name="Settings_CleanerCleanTempFolders" xml:space="preserve">
+    <value>Neta łe cartełe tenporanee</value>
+  </data>
+  <data name="Settings_CleanerCleanTempFoldersTip" xml:space="preserve">
+    <value>Svoda anca łe cartełe tenporanee de Windows</value>
+  </data>
+  <data name="Settings_CleanerCleanProtectedFiles" xml:space="preserve">
+    <value>Neta i file protezesti</value>
+  </data>
+  <data name="Settings_CleanerCleanProtectedFilesTip" xml:space="preserve">
+    <value>Scancela anca i file de autenticasion e de configurasion, come Sirstrap.ini</value>
+  </data>
+  <data name="Settings_RunCleanerNow" xml:space="preserve">
+    <value>Fa ndar el cleaner deso</value>
+  </data>
+  <data name="Settings_RunCleanerNowTip" xml:space="preserve">
+    <value>Sara Roblox e SirHurt e scancela subito i so dati. No se pol tornar indrio</value>
+  </data>
+  <data name="Settings_SirHurtPath" xml:space="preserve">
+    <value>Percorso de SirHurt:</value>
+  </data>
+  <data name="Settings_SirHurtPathTip" xml:space="preserve">
+    <value>Carteła indove xe instałà SirHurt, trovà in automatico</value>
+  </data>
+  <data name="Settings_RunSirHurt" xml:space="preserve">
+    <value>Taca el bootstrapper de SirHurt</value>
+  </data>
+
+  <data name="Settings_SirstrapAutoUpdate" xml:space="preserve">
+    <value>Ativa l'ajornamento automatico de Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapAutoUpdateTip" xml:space="preserve">
+    <value>Descarga e instała da soło łe version nove de Sirstrap a l'avio</value>
+  </data>
+  <data name="Settings_SirstrapTelemetry" xml:space="preserve">
+    <value>Ativa ła tełemetria de Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapTelemetryTip" xml:space="preserve">
+    <value>Manda rapporti de crash e metriche de uso anonime par jutar a justar i bug</value>
+  </data>
+  <data name="Settings_SirstrapAccentColor" xml:space="preserve">
+    <value>Cołor prinsipałe de Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapAccentColorTip" xml:space="preserve">
+    <value>Cołor doparà par evidensiar l'interfacia</value>
+  </data>
+  <data name="Settings_SirstrapFontFamily" xml:space="preserve">
+    <value>Caratere de Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapFontFamilyTip" xml:space="preserve">
+    <value>Caratere doparà in tuta l'interfacia</value>
+  </data>
+  <data name="Settings_SirstrapLanguage" xml:space="preserve">
+    <value>Łengua de Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapLanguageTip" xml:space="preserve">
+    <value>Łengua de l'interfacia. Sistema el ghe va drio a ła łengua de Windows</value>
+  </data>
+  <data name="Settings_SirstrapTrayMode" xml:space="preserve">
+    <value>Modo de l'icona so ła bara de Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapTrayModeTip" xml:space="preserve">
+    <value>Quando Sirstrap el ga da sconderse so ła bara de sistema invese de restar so el schermo</value>
+  </data>
+  <data name="Settings_SirstrapUpdateChannel" xml:space="preserve">
+    <value>Canałe de ajornamento de Sirstrap:</value>
+  </data>
+  <data name="Settings_SirstrapUpdateChannelTip" xml:space="preserve">
+    <value>Canałe de rilasio da cui ajornarse, par esenpio -beta par ricever łe anteprime</value>
+  </data>
+</root>

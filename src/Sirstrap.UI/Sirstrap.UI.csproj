@@ -11,6 +11,7 @@
 		<PublishAot>False</PublishAot>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<NoWarn>$(NoWarn);IL2104</NoWarn>
+		<RespectAlreadyAssignedItemCulture>true</RespectAlreadyAssignedItemCulture>
 		<Product>Sirstrap</Product>
 		<Description>Sirstrap 2026.x</Description>
 		<Company>ギャップ</Company>
@@ -39,6 +40,9 @@
 	</ItemGroup>
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
+	</ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Update="Resources\Strings.vec.resx" Culture="vec" WithCulture="true" LogicalName="Sirstrap.UI.Resources.Strings.vec.resources" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="12.1.3" />
