@@ -30,6 +30,17 @@ namespace Sirstrap.Core.Tests.Deployment
         }
 
         [Fact]
+        public async Task RobloxClientVersionApi_FallsBackToClientSettings_WhenCdnFails()
+        {
+            HttpClient client = StubHttpMessageHandler.Client(request => request.RequestUri!.Host == "clientsettingscdn.roblox.com"
+                ? throw new HttpRequestException("cdn down")
+                : new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"clientVersionUpload":"version-fallback"}""") });
+            RobloxClientVersionApi api = new(client);
+
+            Assert.Equal("version-fallback", await api.GetVersionAsync());
+        }
+
+        [Fact]
         public async Task SirHurtVersionApi_ReturnsVersion_AndNotOutdated_ForRecentUpdate()
         {
             long recent = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
