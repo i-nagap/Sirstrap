@@ -44,7 +44,7 @@ namespace Sirstrap.Core.Deployment
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to retrieve the Roblox version from the SirHurt API.");
+                Log.Warning(ex, "[!] Failed to retrieve the Roblox version from the SirHurt API.");
 
                 return (string.Empty, false);
             }

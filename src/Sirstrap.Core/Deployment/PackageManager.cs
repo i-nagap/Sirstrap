@@ -58,7 +58,7 @@ namespace Sirstrap.Core.Deployment
 
                     performanceTelemetry.RecordCounter("packages.download.windows.manifest_invalid");
 
-                    return;
+                    throw new InvalidOperationException($"The manifest for the version {configuration.VersionHash} is unavailable or invalid.");
                 }
 
                 int packageCount = manifest.Packages.Count;

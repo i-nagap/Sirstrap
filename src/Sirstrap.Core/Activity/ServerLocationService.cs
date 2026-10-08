@@ -41,7 +41,7 @@ namespace Sirstrap.Core.Activity
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to resolve the server location for IP {IpAddress}.", ipAddress);
+                Log.Warning(ex, "[!] Failed to resolve the server location for IP {IpAddress}.", ipAddress);
 
                 scope.MarkFailed();
                 performanceTelemetry.RecordCounter("server.location.outcome", new Dictionary<string, object> { ["value"] = "Exception" });

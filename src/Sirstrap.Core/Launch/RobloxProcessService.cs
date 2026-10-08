@@ -65,6 +65,10 @@ namespace Sirstrap.Core.Launch
                 {
                     Log.Information("[*] The Roblox process {ProcessName} is running (PID {ProcessId}, started {StartTime}, {MemoryMb} MB, title {MainWindowTitle}).", process.ProcessName, process.Id, process.StartTime.ToString("yyyy-MM-dd HH:mm:ss"), process.WorkingSet64 / 1024 / 1024, process.MainWindowTitle);
                 }
+                catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+                {
+                    Log.Debug(ex, "[*] The Roblox process {ProcessId} exited or is not accessible.", process.Id);
+                }
                 finally
                 {
                     process.Dispose();

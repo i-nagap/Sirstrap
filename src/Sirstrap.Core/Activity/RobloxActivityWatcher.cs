@@ -115,6 +115,10 @@ namespace Sirstrap.Core.Activity
             {
                 Log.Debug(ex, "[*] Stopped reading the Roblox log file {LogFilePath}.", logFilePath);
             }
+            catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+            {
+                Log.Debug(ex, "[*] The Roblox log file {LogFilePath} was removed before it could be read.", logFilePath);
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, "[!] Failed to read the Roblox log file {LogFilePath}.", logFilePath);
@@ -127,7 +131,7 @@ namespace Sirstrap.Core.Activity
 
             var cancellationToken = _cancellationTokenSource.Token;
 
-            _logReadingTask = Task.Run(() => ReadLogFileAsync(logFilePath, cancellationToken), cancellationToken);
+            _logReadingTask = Task.Run(() => ReadLogFileAsync(logFilePath, cancellationToken), CancellationToken.None);
         }
 
         private async Task UpdateServerLocationAsync(string ipAddress)

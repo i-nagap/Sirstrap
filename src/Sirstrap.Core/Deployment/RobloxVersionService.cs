@@ -50,7 +50,7 @@ namespace Sirstrap.Core.Deployment
 
             if (string.IsNullOrEmpty(sirHurtVersion))
             {
-                Log.Error("[!] Failed to retrieve the Roblox version from the SirHurt API, falling back to the Roblox API...");
+                Log.Warning("[!] Failed to retrieve the Roblox version from the SirHurt API, falling back to the Roblox API...");
 
                 return await GetRobloxApiVersionAsync();
             }
@@ -63,7 +63,7 @@ namespace Sirstrap.Core.Deployment
 
                 if (string.IsNullOrEmpty(robloxVersion))
                 {
-                    Log.Error("[!] Failed to retrieve the Roblox version from the Roblox API, falling back to the outdated SirHurt version...");
+                    Log.Warning("[!] Failed to retrieve the Roblox version from the Roblox API, falling back to the outdated SirHurt version...");
 
                     return (sirHurtVersion, VersionResolutionSource.SirHurtFallback);
                 }
@@ -80,7 +80,7 @@ namespace Sirstrap.Core.Deployment
 
             if (string.IsNullOrWhiteSpace(version))
             {
-                Log.Error("[!] Failed to retrieve the current Roblox version from WEAO, falling back to the Roblox API...");
+                Log.Warning("[!] Failed to retrieve the current Roblox version from WEAO, falling back to the Roblox API...");
 
                 return await GetRobloxApiVersionAsync();
             }
@@ -94,7 +94,7 @@ namespace Sirstrap.Core.Deployment
 
             if (string.IsNullOrWhiteSpace(version))
             {
-                Log.Error("[!] Failed to retrieve the version supported by the executor {Executor} from WEAO, falling back to the Roblox API...", executor);
+                Log.Warning("[!] Failed to retrieve the version supported by the executor {Executor} from WEAO, falling back to the Roblox API...", executor);
 
                 return await GetRobloxApiVersionAsync();
             }

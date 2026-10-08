@@ -90,6 +90,6 @@ namespace Sirstrap.Core.Weao
 
         private static string? NullIfBlank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
 
-        private static string? ResolveExploitVersion(ExploitStatus exploit) => NullIfBlank(exploit.Version) ?? NullIfBlank(exploit.RbxVersion);
+        private static string? ResolveExploitVersion(ExploitStatus exploit) => NullIfBlank(exploit.RbxVersion);
     }
 }

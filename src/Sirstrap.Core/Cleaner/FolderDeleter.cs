@@ -14,6 +14,10 @@ namespace Sirstrap.Core.Cleaner
 
                 Log.Information("[*] Deleted the folder {FolderPath} after clearing the read-only attributes.", path);
             }
+            catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+            {
+                Log.Warning(ex, "[!] Failed to delete the folder {FolderPath}, it is in use by another process.", path);
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, "[!] Failed to delete the folder {FolderPath}.", path);

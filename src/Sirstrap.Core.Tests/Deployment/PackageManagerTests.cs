@@ -67,7 +67,7 @@ namespace Sirstrap.Core.Tests.Deployment
         }
 
         [Fact]
-        public async Task DownloadWindowsArchiveAsync_DoesNothing_WhenManifestInvalid()
+        public async Task DownloadWindowsArchiveAsync_Throws_WhenManifestInvalid()
         {
             using TempDirectory temp = new();
             FakePathManager pathManager = new(temp.Path);
@@ -75,7 +75,7 @@ namespace Sirstrap.Core.Tests.Deployment
             HttpClient client = StubHttpMessageHandler.Client(HttpStatusCode.OK, "garbage-manifest");
             Configuration configuration = new() { BinaryType = "WindowsPlayer", VersionHash = "v1" };
 
-            await NewManager(client, pathManager).DownloadWindowsArchiveAsync(configuration);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => NewManager(client, pathManager).DownloadWindowsArchiveAsync(configuration));
 
             Assert.False(File.Exists(pathManager.GetOutputPath(configuration)));
         }
