@@ -56,14 +56,13 @@ namespace Sirstrap.Core.Tests.Settings
         [Fact]
         public void Factories_CarryMetricAndLegacyKeysAndMigrator()
         {
-            int metricCalls = 0;
-            SettingDefinition definition = Setting.String("KEY", () => "v", _ => { }, () => metricCalls++, ["OLD_KEY"], value => value.ToUpperInvariant());
+            SettingMetric metric = new("Key", () => "value");
+            SettingDefinition definition = Setting.String("KEY", () => "v", _ => { }, metric, ["OLD_KEY"], value => value.ToUpperInvariant());
 
             Assert.Equal(["OLD_KEY"], definition.LegacyKeys);
             Assert.Equal("ABC", definition.ValueMigrator!("abc"));
 
-            definition.MetricEmitter!();
-            Assert.Equal(1, metricCalls);
+            Assert.Same(metric, definition.Metric);
         }
 
         [Fact]
@@ -73,7 +72,7 @@ namespace Sirstrap.Core.Tests.Settings
 
             Assert.Empty(definition.LegacyKeys);
             Assert.Null(definition.ValueMigrator);
-            Assert.Null(definition.MetricEmitter);
+            Assert.Null(definition.Metric);
         }
     }
 }

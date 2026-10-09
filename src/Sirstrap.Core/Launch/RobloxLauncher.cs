@@ -16,7 +16,9 @@ namespace Sirstrap.Core.Launch
             using ITelemetryScope scope = performanceTelemetry.Measure("roblox.launch", new Dictionary<string, object>
             {
                 ["multiInstance"] = sirstrapConfiguration.RobloxMultiInstance,
-                ["incognito"] = sirstrapConfiguration.RobloxIncognito
+                ["incognito"] = sirstrapConfiguration.RobloxIncognito,
+                ["fastFlags"] = sirstrapConfiguration.RobloxFastFlagsEnabled,
+                ["hasLaunchUri"] = !string.IsNullOrEmpty(configuration.LaunchUri)
             });
 
             var extractionPath = pathManager.GetExtractionPath(configuration.VersionHash);
@@ -53,8 +55,6 @@ namespace Sirstrap.Core.Launch
                     return Fail(scope, "ProcessStartFailed");
                 }
 
-                performanceTelemetry.RecordCounter("roblox.launch.outcome", new Dictionary<string, object> { ["value"] = "Success" });
-
                 if (singletonCaptured)
                     WaitForGameExit(existingPids);
 
@@ -64,7 +64,7 @@ namespace Sirstrap.Core.Launch
             {
                 Log.Error(ex, "[!] Failed to launch Roblox.");
 
-                return Fail(scope, "Exception");
+                return Fail(scope, ex.GetType().Name);
             }
             finally
             {
@@ -73,11 +73,9 @@ namespace Sirstrap.Core.Launch
             }
         }
 
-        private bool Fail(ITelemetryScope scope, string outcome)
+        private static bool Fail(ITelemetryScope scope, string outcome)
         {
-            scope.MarkFailed();
-
-            performanceTelemetry.RecordCounter("roblox.launch.outcome", new Dictionary<string, object> { ["value"] = outcome });
+            scope.MarkFailed(outcome);
 
             return false;
         }

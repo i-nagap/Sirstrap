@@ -36,6 +36,25 @@ namespace Sirstrap.Core.Tests.Activity
             Assert.Equal(string.Empty, await NewService(client).GetServerLocationAsync("203.0.113.3"));
         }
 
+        [Theory]
+        [InlineData(HttpStatusCode.OK, """{"city":"Milan","region":"Lombardy","country":"IT"}""", "Success")]
+        [InlineData(HttpStatusCode.OK, """{"city":"Nowhere"}""", "Unparsed")]
+        [InlineData(HttpStatusCode.TooManyRequests, "{}", "Http429")]
+        public async Task GetServerLocationAsync_RecordsTheDuration_WithTheOutcome(HttpStatusCode statusCode, string json, string expectedOutcome)
+        {
+            RecordingPerformanceTelemetry telemetry = new();
+            ServerLocationService service = new(StubHttpMessageHandler.Client(statusCode, json), telemetry);
+
+            await service.GetServerLocationAsync("203.0.113.9");
+
+            var distribution = Assert.Single(telemetry.Distributions);
+
+            Assert.Equal("server.location.duration", distribution.Name);
+            Assert.Equal("millisecond", distribution.Unit);
+            Assert.Equal(expectedOutcome, distribution.Tags?["outcome"]);
+            Assert.Empty(telemetry.Scopes);
+        }
+
         [Fact]
         public async Task GetServerLocationAsync_CachesResult()
         {

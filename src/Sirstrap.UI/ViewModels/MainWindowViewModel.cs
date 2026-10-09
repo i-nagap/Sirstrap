@@ -275,7 +275,7 @@
                 if (_sirHurtService.Logout())
                     SirHurtUser = _sirHurtService.GetSirHurtUser();
 
-                Sentry.SentrySdk.Metrics.EmitCounter(nameof(Logout), 1);
+                Sentry.SentrySdk.Metrics.EmitCounter("ui.action", 1, new Dictionary<string, object> { ["action"] = nameof(Logout) });
             }
             catch (Exception ex)
             {
@@ -301,7 +301,7 @@
                     FileName = $"{GITHUB_PROFILE_URI_PREFIX}{account}/Sirstrap",
                     UseShellExecute = true
                 });
-                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHubAsync), 1);
+                Sentry.SentrySdk.Metrics.EmitCounter("ui.action", 1, new Dictionary<string, object> { ["action"] = nameof(OpenGitHubAsync) });
             }
             catch (Exception ex)
             {
@@ -321,7 +321,7 @@
                     FileName = $"{GITHUB_PROFILE_URI_PREFIX}{account}",
                     UseShellExecute = true
                 });
-                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenGitHubProfileAsync), 1);
+                Sentry.SentrySdk.Metrics.EmitCounter("ui.action", 1, new Dictionary<string, object> { ["action"] = nameof(OpenGitHubProfileAsync) });
             }
             catch (Exception ex)
             {
@@ -335,7 +335,7 @@
             try
             {
                 new SettingsWindow { DataContext = Program.Services.GetRequiredService<SettingsWindowViewModel>() }.ShowDialog(GetMainWindow()!);
-                Sentry.SentrySdk.Metrics.EmitCounter(nameof(OpenSettings), 1);
+                Sentry.SentrySdk.Metrics.EmitCounter("ui.action", 1, new Dictionary<string, object> { ["action"] = nameof(OpenSettings) });
             }
             catch (Exception ex)
             {
@@ -399,17 +399,7 @@
                 .WriteTo.LastLog(_lastLogSink);
 
 #if !DEBUG
-            if (_configuration.SirstrapTelemetry)
-                loggerConfig = loggerConfig.WriteTo.Sentry(x =>
-                {
-                    x.Dsn = "https://0cd56ab3e5eac300ecf1380dd6ad0a92@o4510907426471936.ingest.de.sentry.io/4510907479490640";
-                    x.AutoSessionTracking = true;
-                    x.EnableLogs = true;
-
-                    x.TracesSampleRate = 0.5;
-                    x.ProfilesSampleRate = 0.5;
-                    x.AddIntegration(new Sentry.Profiling.ProfilingIntegration());
-                });
+            loggerConfig = loggerConfig.WriteToSentry(_configuration, SirstrapType.UI, appGuid);
 #endif
 
             Log.Logger = loggerConfig.CreateLogger();

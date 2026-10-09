@@ -26,13 +26,14 @@ namespace Sirstrap.Core.Deployment
                 scope.SetTag("channel", configuration.ChannelName);
                 scope.SetTag("binaryType", configuration.BinaryType);
 
+                performanceTelemetry.SetTag("roblox.channel", configuration.ChannelName);
+                performanceTelemetry.SetTag("roblox.binary_type", configuration.BinaryType);
+
                 var overridden = string.IsNullOrEmpty(configuration.VersionHash) && robloxVersionService.HasVersionOverride;
 
                 if (!await ResolveVersionAsync(configuration).ConfigureAwait(false))
                 {
-                    scope.MarkFailed();
-
-                    performanceTelemetry.RecordCounter("sirstrap.execute.outcome", new Dictionary<string, object> { ["value"] = "VersionResolutionFailed" });
+                    scope.MarkFailed("VersionResolutionFailed");
 
                     return;
                 }
@@ -45,18 +46,18 @@ namespace Sirstrap.Core.Deployment
                 }
                 catch (Exception ex) when (overridden)
                 {
+                    scope.SetTag("versionOverrideFallback", true);
+
                     outcome = await FallBackToVersionSourceAsync(configuration, ex).ConfigureAwait(false);
                 }
 
-                performanceTelemetry.RecordCounter("sirstrap.execute.outcome", new Dictionary<string, object> { ["value"] = outcome });
+                scope.SetOutcome(outcome);
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "[!] Failed to execute Sirstrap.");
 
                 scope.MarkFailed();
-
-                performanceTelemetry.RecordCounter("sirstrap.execute.outcome", new Dictionary<string, object> { ["value"] = "Failed" });
 
                 Environment.ExitCode = 1;
             }
@@ -67,8 +68,6 @@ namespace Sirstrap.Core.Deployment
             if (IsAlreadyInstalled(configuration))
             {
                 Log.Information("[*] The version {VersionHash} is already installed.", configuration.VersionHash);
-
-                performanceTelemetry.RecordCounter("sirstrap.execute.cache_hit", new Dictionary<string, object> { ["binaryType"] = configuration.BinaryType });
 
                 if (LaunchApplication(configuration))
                     return "Cached";
@@ -88,8 +87,6 @@ namespace Sirstrap.Core.Deployment
         private async Task<string> FallBackToVersionSourceAsync(Configuration configuration, Exception exception)
         {
             Log.Error(exception, "[!] Failed to deploy the Roblox version override {VersionHash}, falling back to the Roblox version source...", configuration.VersionHash);
-
-            performanceTelemetry.RecordCounter("sirstrap.execute.version_override_fallback");
 
             configuration.VersionHash = await robloxVersionService.GetSourceVersionAsync().ConfigureAwait(false);
 

@@ -6,9 +6,9 @@ namespace Sirstrap.Core.Tests.Settings
         {
             SirstrapConfiguration configuration = new();
             RecordingPerformanceTelemetry telemetry = new();
-            SettingsRegistry registry = new(configuration, new CdnUriNormalizer(), telemetry);
+            SettingsRegistry registry = new(configuration, new CdnUriNormalizer());
 
-            return (new SettingsService(registry), configuration, telemetry);
+            return (new SettingsService(registry, telemetry), configuration, telemetry);
         }
 
         [Fact]
@@ -158,14 +158,19 @@ namespace Sirstrap.Core.Tests.Settings
         }
 
         [Fact]
-        public void EmitSettingsMetrics_RecordsCountersForSettingsWithMetrics()
+        public void EmitSettingsMetrics_RecordsOneSnapshot_AndSetsTheSettingsContext()
         {
             var (service, _, telemetry) = NewService();
 
             service.EmitSettingsMetrics();
 
-            Assert.Contains(telemetry.Counters, c => c.Name == "settings.SirstrapAutoUpdate");
-            Assert.Contains(telemetry.Counters, c => c.Name == "settings.SirstrapTrayMode");
+            var snapshot = Assert.Single(telemetry.Counters, c => c.Name == "settings.snapshot").Tags;
+
+            Assert.NotNull(snapshot);
+            Assert.Contains("SirstrapAutoUpdate", snapshot.Keys);
+            Assert.Contains("SirstrapTrayMode", snapshot.Keys);
+            Assert.DoesNotContain("SirstrapTelemetry", snapshot.Keys);
+            Assert.Same(snapshot, telemetry.Contexts["Settings"]);
         }
 
         [Fact]

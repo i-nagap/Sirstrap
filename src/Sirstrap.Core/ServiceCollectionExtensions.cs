@@ -107,7 +107,7 @@ namespace Sirstrap.Core
 
         private static HttpClient CreateHttpClient()
         {
-            HttpClient httpClient = new()
+            HttpClient httpClient = new(new SentryHttpMessageHandler())
             {
                 Timeout = TimeSpan.FromMinutes(HTTP_TIMEOUT_MINUTES)
             };

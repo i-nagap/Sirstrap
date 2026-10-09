@@ -57,13 +57,7 @@ namespace Sirstrap.Core.Update
                 outcome = UpdateOutcome.Failed;
             }
 
-            scope.SetTag("outcome", outcome.ToString());
-
-            performanceTelemetry.RecordCounter("update.check.outcome", new Dictionary<string, object>
-            {
-                ["outcome"] = outcome.ToString(),
-                ["sirstrapType"] = sirstrapType.ToString()
-            });
+            scope.SetOutcome(outcome.ToString());
         }
 
         private async Task<bool> DownloadAndApplyUpdateAsync(SirstrapType sirstrapType, string[] args)

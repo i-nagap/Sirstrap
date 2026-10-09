@@ -26,9 +26,8 @@ namespace Sirstrap.Core.Deployment
 
                 Log.Information("[*] Downloaded the Mac archive {ArchiveName}.", archiveName);
 
-                performanceTelemetry.RecordCounter("packages.download.mac.bytes", new Dictionary<string, object>
+                performanceTelemetry.RecordDistribution("packages.download.mac.bytes", byteCount, "byte", new Dictionary<string, object>
                 {
-                    ["bytes"] = byteCount,
                     ["archive"] = archiveName
                 });
             }
@@ -54,21 +53,14 @@ namespace Sirstrap.Core.Deployment
 
                 if (!manifest.IsValid)
                 {
-                    scope.MarkFailed();
-
-                    performanceTelemetry.RecordCounter("packages.download.windows.manifest_invalid");
+                    scope.MarkFailed("ManifestInvalid");
 
                     throw new InvalidOperationException($"The manifest for the version {configuration.VersionHash} is unavailable or invalid.");
                 }
 
                 int packageCount = manifest.Packages.Count;
 
-                scope.SetTag("packageCount", packageCount.ToString());
-
-                performanceTelemetry.RecordCounter("packages.download.windows.manifest", new Dictionary<string, object>
-                {
-                    ["packageCount"] = packageCount
-                });
+                scope.SetTag("packageCount", packageCount);
 
                 string outputPath = pathManager.GetOutputPath(configuration);
 
@@ -83,9 +75,8 @@ namespace Sirstrap.Core.Deployment
 
                 Log.Information("[*] Downloaded all the Windows packages.");
 
-                performanceTelemetry.RecordCounter("packages.download.windows.bytes", new Dictionary<string, object>
+                performanceTelemetry.RecordDistribution("packages.download.windows.bytes", totalBytes, "byte", new Dictionary<string, object>
                 {
-                    ["bytes"] = totalBytes,
                     ["packageCount"] = packageCount
                 });
             }

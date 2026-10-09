@@ -1,13 +1,17 @@
 namespace Sirstrap.Core.Settings
 {
-    public sealed class SettingsService(ISettingsRegistry settingsRegistry) : ISettingsService
+    public sealed class SettingsService(ISettingsRegistry settingsRegistry, IPerformanceTelemetry performanceTelemetry) : ISettingsService
     {
         public void EmitSettingsMetrics()
         {
             try
             {
-                foreach (var setting in settingsRegistry.Settings)
-                    setting.MetricEmitter?.Invoke();
+                Dictionary<string, object> snapshot = settingsRegistry.Settings
+                    .Where(setting => setting.Metric != null)
+                    .ToDictionary(setting => setting.Metric!.Name, setting => setting.Metric!.GetValue());
+
+                performanceTelemetry.RecordCounter("settings.snapshot", snapshot);
+                performanceTelemetry.SetContext("Settings", snapshot);
             }
             catch (Exception ex)
             {

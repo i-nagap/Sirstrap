@@ -4,17 +4,16 @@ namespace Sirstrap.Core.Settings
     {
         private readonly Lazy<IReadOnlyList<SettingDefinition>> _settings;
 
-        public SettingsRegistry(SirstrapConfiguration configuration, ICdnUriNormalizer cdnUriNormalizer, IPerformanceTelemetry performanceTelemetry)
+        public SettingsRegistry(SirstrapConfiguration configuration, ICdnUriNormalizer cdnUriNormalizer)
         {
-            _settings = new(() => BuildSettings(configuration, cdnUriNormalizer, performanceTelemetry));
+            _settings = new(() => BuildSettings(configuration, cdnUriNormalizer));
         }
 
         public IReadOnlyList<SettingDefinition> Settings => _settings.Value;
 
-        private static IReadOnlyList<SettingDefinition> BuildSettings(SirstrapConfiguration configuration, ICdnUriNormalizer cdnUriNormalizer, IPerformanceTelemetry performanceTelemetry)
+        private static IReadOnlyList<SettingDefinition> BuildSettings(SirstrapConfiguration configuration, ICdnUriNormalizer cdnUriNormalizer)
         {
-            Action Metric(string name, Func<object> getValue)
-                => () => performanceTelemetry.RecordCounter($"settings.{name}", new Dictionary<string, object> { ["value"] = getValue() });
+            static SettingMetric Metric(string name, Func<object> getValue) => new(name, getValue);
 
             string NormalizeCdnUriOverride(string value)
             {

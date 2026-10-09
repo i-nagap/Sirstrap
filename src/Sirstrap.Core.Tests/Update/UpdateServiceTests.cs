@@ -19,7 +19,7 @@ namespace Sirstrap.Core.Tests.Update
 
             await service.UpdateAsync(SirstrapType.CLI, []);
 
-            Assert.Contains(telemetry.Counters, c => c.Name == "update.check.outcome" && Equals(c.Tags?["outcome"], "Disabled"));
+            Assert.Equal("Disabled", Assert.Single(telemetry.Scopes).Outcome);
         }
 
         [Fact]
@@ -32,7 +32,7 @@ namespace Sirstrap.Core.Tests.Update
 
             await service.UpdateAsync(SirstrapType.CLI, []);
 
-            Assert.Contains(telemetry.Counters, c => c.Name == "update.check.outcome" && Equals(c.Tags?["outcome"], "UpToDate"));
+            Assert.Equal("UpToDate", Assert.Single(telemetry.Scopes).Outcome);
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace Sirstrap.Core.Tests.Update
 
             await service.UpdateAsync(SirstrapType.CLI, []);
 
-            Assert.Contains(telemetry.Counters, c => c.Name == "update.check.outcome" && Equals(c.Tags?["outcome"], "UpToDate"));
+            Assert.Equal("UpToDate", Assert.Single(telemetry.Scopes).Outcome);
         }
 
         [Fact]
@@ -57,7 +57,7 @@ namespace Sirstrap.Core.Tests.Update
 
             await service.UpdateAsync(SirstrapType.CLI, []);
 
-            Assert.Contains(telemetry.Counters, c => c.Name == "update.check.outcome" && Equals(c.Tags?["outcome"], "Failed"));
+            Assert.Equal("Failed", Assert.Single(telemetry.Scopes).Outcome);
         }
 
         [Fact]

@@ -2,8 +2,10 @@ namespace Sirstrap.Core.Telemetry
 {
     public interface ITelemetryScope : IDisposable
     {
-        void MarkFailed();
+        void MarkFailed(string? outcome = null);
 
-        void SetTag(string key, string value);
+        void SetOutcome(string outcome);
+
+        void SetTag(string key, object value);
     }
 }

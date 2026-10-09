@@ -10,11 +10,14 @@ namespace Sirstrap.Core.Tests.Telemetry
             var exception = Record.Exception(() =>
             {
                 NullPerformanceTelemetry.Instance.RecordCounter("counter");
-                NullPerformanceTelemetry.Instance.RecordDuration("op", TimeSpan.FromSeconds(1));
+                NullPerformanceTelemetry.Instance.RecordDistribution("op.duration", 1, "millisecond");
+                NullPerformanceTelemetry.Instance.SetTag("k", "v");
+                NullPerformanceTelemetry.Instance.SetContext("c", new Dictionary<string, object> { ["a"] = 1 });
 
                 using ITelemetryScope scope = NullPerformanceTelemetry.Instance.Measure("op");
                 scope.SetTag("k", "v");
-                scope.MarkFailed();
+                scope.SetOutcome("Cached");
+                scope.MarkFailed("Boom");
             });
 
             Assert.Null(exception);
@@ -28,11 +31,15 @@ namespace Sirstrap.Core.Tests.Telemetry
             var exception = Record.Exception(() =>
             {
                 telemetry.RecordCounter("counter", new Dictionary<string, object> { ["a"] = 1 });
-                telemetry.RecordDuration("op", TimeSpan.FromMilliseconds(5), new Dictionary<string, object> { ["a"] = 1 });
+                telemetry.RecordDistribution("op.bytes", 5, "byte", new Dictionary<string, object> { ["a"] = 1 });
+                telemetry.SetTag("k", "v");
+                telemetry.SetContext("c", new Dictionary<string, object> { ["a"] = 1 });
 
                 using ITelemetryScope scope = telemetry.Measure("op", new Dictionary<string, object> { ["a"] = 1 });
-                scope.SetTag("k", "v");
-                scope.MarkFailed();
+                scope.SetTag("k", 42);
+                scope.MarkFailed("Boom");
+                scope.Dispose();
+                scope.Dispose();
             });
 
             Assert.Null(exception);
@@ -47,5 +54,13 @@ namespace Sirstrap.Core.Tests.Telemetry
 
             Assert.NotNull(scope);
         }
+
+        [Theory]
+        [InlineData("-beta", "beta")]
+        [InlineData("-Alpha", "alpha")]
+        [InlineData("", "production")]
+        [InlineData(null, "production")]
+        public void GetEnvironment_MapsTheChannel(string? channel, string expected)
+            => Assert.Equal(expected, SentryLoggerConfigurationExtensions.GetEnvironment(channel));
     }
 }

@@ -8,9 +8,13 @@ namespace Sirstrap.Core.Telemetry
 
         public void RecordCounter(string name, IReadOnlyDictionary<string, object>? tags = null) { }
 
-        public void RecordDuration(string operation, TimeSpan elapsed, IReadOnlyDictionary<string, object>? tags = null) { }
+        public void RecordDistribution(string name, double value, string unit, IReadOnlyDictionary<string, object>? tags = null) { }
 
         public ITelemetryScope Measure(string operation, IReadOnlyDictionary<string, object>? tags = null) => NoopScope.Shared;
+
+        public void SetTag(string key, string value) { }
+
+        public void SetContext(string name, IReadOnlyDictionary<string, object> values) { }
 
         private sealed class NoopScope : ITelemetryScope
         {
@@ -20,9 +24,11 @@ namespace Sirstrap.Core.Telemetry
 
             public void Dispose() { }
 
-            public void MarkFailed() { }
+            public void MarkFailed(string? outcome = null) { }
 
-            public void SetTag(string key, string value) { }
+            public void SetOutcome(string outcome) { }
+
+            public void SetTag(string key, object value) { }
         }
     }
 }

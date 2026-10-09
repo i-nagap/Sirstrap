@@ -15,7 +15,7 @@ namespace Sirstrap.Core.Activity
             if (_locationCache.TryGetValue(ipAddress, out var cachedLocation))
                 return cachedLocation;
 
-            using ITelemetryScope scope = performanceTelemetry.Measure("server.location");
+            var stopwatch = Stopwatch.StartNew();
 
             try
             {
@@ -24,8 +24,7 @@ namespace Sirstrap.Core.Activity
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    scope.MarkFailed();
-                    performanceTelemetry.RecordCounter("server.location.outcome", new Dictionary<string, object> { ["value"] = "NotFound" });
+                    RecordDuration(stopwatch, $"Http{(int)response.StatusCode}");
 
                     return string.Empty;
                 }
@@ -35,7 +34,7 @@ namespace Sirstrap.Core.Activity
                 _locationCache[ipAddress] = location;
 
                 Log.Information("[*] Resolved the server location for IP {IpAddress}: {Location}.", ipAddress, location);
-                performanceTelemetry.RecordCounter("server.location.outcome", new Dictionary<string, object> { ["value"] = "Success" });
+                RecordDuration(stopwatch, string.IsNullOrEmpty(location) ? "Unparsed" : "Success");
 
                 return location;
             }
@@ -43,8 +42,7 @@ namespace Sirstrap.Core.Activity
             {
                 Log.Warning(ex, "[!] Failed to resolve the server location for IP {IpAddress}.", ipAddress);
 
-                scope.MarkFailed();
-                performanceTelemetry.RecordCounter("server.location.outcome", new Dictionary<string, object> { ["value"] = "Exception" });
+                RecordDuration(stopwatch, ex.GetType().Name);
 
                 return string.Empty;
             }
@@ -52,6 +50,9 @@ namespace Sirstrap.Core.Activity
 
         #region PRIVATE METHODS
         private static string GetString(JsonElement root, string propertyName) => root.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String ? property.GetString() ?? string.Empty : string.Empty;
+
+        private void RecordDuration(Stopwatch stopwatch, string outcome)
+            => performanceTelemetry.RecordDistribution("server.location.duration", stopwatch.Elapsed.TotalMilliseconds, "millisecond", new Dictionary<string, object> { ["outcome"] = outcome });
 
         private static string ParseLocation(string json)
         {

@@ -6,11 +6,10 @@ namespace Sirstrap.Core.Cdn
         {
             try
             {
-                SentrySdk.Metrics.EmitCounter("cdn.probe", 1, new Dictionary<string, object>
+                SentrySdk.Metrics.EmitDistribution("cdn.probe.duration", elapsed.TotalMilliseconds, "millisecond", new Dictionary<string, object>
                 {
                     ["baseUri"] = baseUri,
-                    ["success"] = success,
-                    ["elapsed_ms"] = (long)elapsed.TotalMilliseconds
+                    ["success"] = success
                 });
             }
             catch (Exception ex)

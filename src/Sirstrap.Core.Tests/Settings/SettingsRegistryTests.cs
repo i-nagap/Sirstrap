@@ -2,12 +2,7 @@ namespace Sirstrap.Core.Tests.Settings
 {
     public class SettingsRegistryTests
     {
-        private static SettingsRegistry NewRegistry(SirstrapConfiguration config, out RecordingPerformanceTelemetry telemetry)
-        {
-            telemetry = new RecordingPerformanceTelemetry();
-
-            return new SettingsRegistry(config, new CdnUriNormalizer(), telemetry);
-        }
+        private static SettingsRegistry NewRegistry(SirstrapConfiguration config) => new(config, new CdnUriNormalizer());
 
         private static SettingDefinition Find(SettingsRegistry registry, string key) => registry.Settings.First(s => s.Key == key);
 
@@ -16,7 +11,7 @@ namespace Sirstrap.Core.Tests.Settings
         [Fact]
         public void Settings_ExposeAllExpectedKeys()
         {
-            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration(), out _);
+            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration());
 
             string[] keys = [.. registry.Settings.Select(s => s.Key)];
 
@@ -43,7 +38,7 @@ namespace Sirstrap.Core.Tests.Settings
         [Fact]
         public void Settings_IsCached()
         {
-            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration(), out _);
+            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration());
 
             Assert.Same(registry.Settings, registry.Settings);
         }
@@ -51,7 +46,7 @@ namespace Sirstrap.Core.Tests.Settings
         [Fact]
         public void PreviousInstallationPath_LivesInStateSection()
         {
-            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration(), out _);
+            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration());
 
             Assert.Equal(SettingsSection.State, Find(registry, "ROBLOX_PREVIOUS_INSTALLATION_PATH").Section);
         }
@@ -60,7 +55,7 @@ namespace Sirstrap.Core.Tests.Settings
         public void AutoUpdate_ReadWrite_RoundTrips()
         {
             SirstrapConfiguration config = new();
-            SettingsRegistry registry = NewRegistry(config, out _);
+            SettingsRegistry registry = NewRegistry(config);
             SettingDefinition setting = Find(registry, "SIRSTRAP_AUTO_UPDATE");
 
             Apply(setting, "False");
@@ -75,7 +70,7 @@ namespace Sirstrap.Core.Tests.Settings
         public void FontFamily_MapsMinecraftToJetBrainsMono()
         {
             SirstrapConfiguration config = new();
-            SettingsRegistry registry = NewRegistry(config, out _);
+            SettingsRegistry registry = NewRegistry(config);
             SettingDefinition setting = Find(registry, "SIRSTRAP_FONT_FAMILY");
 
             Apply(setting, "Minecraft");
@@ -89,7 +84,7 @@ namespace Sirstrap.Core.Tests.Settings
         public void InstallationPath_EmptyResetsToDefault()
         {
             SirstrapConfiguration config = new();
-            SettingsRegistry registry = NewRegistry(config, out _);
+            SettingsRegistry registry = NewRegistry(config);
             SettingDefinition setting = Find(registry, "ROBLOX_INSTALLATION_PATH");
 
             Apply(setting, "   ");
@@ -103,7 +98,7 @@ namespace Sirstrap.Core.Tests.Settings
         public void CdnOverride_IsNormalizedOnWrite()
         {
             SirstrapConfiguration config = new();
-            SettingsRegistry registry = NewRegistry(config, out _);
+            SettingsRegistry registry = NewRegistry(config);
             SettingDefinition setting = Find(registry, "ROBLOX_CDN_URI_OVERRIDE");
 
             Apply(setting, "  https://setup-aws.rbxcdn.com///  ");
@@ -114,7 +109,7 @@ namespace Sirstrap.Core.Tests.Settings
         public void CdnOverride_MapsDefaultUriToEmpty()
         {
             SirstrapConfiguration config = new();
-            SettingsRegistry registry = NewRegistry(config, out _);
+            SettingsRegistry registry = NewRegistry(config);
             SettingDefinition setting = Find(registry, "ROBLOX_CDN_URI_OVERRIDE");
 
             Apply(setting, RobloxCdnService.DefaultBaseUri);
@@ -124,7 +119,7 @@ namespace Sirstrap.Core.Tests.Settings
         [Fact]
         public void CdnOverride_ExposesLegacyAliases()
         {
-            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration(), out _);
+            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration());
 
             IReadOnlyList<string> legacyKeys = Find(registry, "ROBLOX_CDN_URI_OVERRIDE").LegacyKeys;
 
@@ -136,7 +131,7 @@ namespace Sirstrap.Core.Tests.Settings
         public void VersionSource_MigratesLegacyRobloxApiBool()
         {
             SirstrapConfiguration config = new();
-            SettingsRegistry registry = NewRegistry(config, out _);
+            SettingsRegistry registry = NewRegistry(config);
             SettingDefinition setting = Find(registry, "ROBLOX_VERSION_SOURCE");
 
             Assert.Contains("ROBLOX_API", setting.LegacyKeys);
@@ -155,7 +150,7 @@ namespace Sirstrap.Core.Tests.Settings
         public void TrayMode_ParsesEnum()
         {
             SirstrapConfiguration config = new();
-            SettingsRegistry registry = NewRegistry(config, out _);
+            SettingsRegistry registry = NewRegistry(config);
             SettingDefinition setting = Find(registry, "SIRSTRAP_TRAY_MODE");
 
             Apply(setting, "onroblox");
@@ -166,21 +161,22 @@ namespace Sirstrap.Core.Tests.Settings
         }
 
         [Fact]
-        public void MetricEmitter_RecordsCounter_ForSettingWithMetric()
+        public void Metric_ExposesTheSettingNameAndValue()
         {
-            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration(), out var telemetry);
+            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration { SirstrapAutoUpdate = false });
 
-            Find(registry, "SIRSTRAP_AUTO_UPDATE").MetricEmitter!();
+            SettingMetric metric = Find(registry, "SIRSTRAP_AUTO_UPDATE").Metric!;
 
-            Assert.Contains(telemetry.Counters, c => c.Name == "settings.SirstrapAutoUpdate");
+            Assert.Equal("SirstrapAutoUpdate", metric.Name);
+            Assert.False(Assert.IsType<bool>(metric.GetValue()));
         }
 
         [Fact]
-        public void TelemetrySetting_HasNoMetricEmitter()
+        public void TelemetrySetting_HasNoMetric()
         {
-            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration(), out _);
+            SettingsRegistry registry = NewRegistry(new SirstrapConfiguration());
 
-            Assert.Null(Find(registry, "SIRSTRAP_TELEMETRY").MetricEmitter);
+            Assert.Null(Find(registry, "SIRSTRAP_TELEMETRY").Metric);
         }
     }
 }

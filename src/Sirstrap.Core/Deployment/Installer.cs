@@ -4,7 +4,10 @@ namespace Sirstrap.Core.Deployment
     {
         public void Install(Configuration configuration)
         {
-            using var scope = performanceTelemetry.Measure("install");
+            using var scope = performanceTelemetry.Measure("install", new Dictionary<string, object>
+            {
+                ["binaryType"] = configuration.BinaryType
+            });
 
             try
             {
@@ -40,20 +43,14 @@ namespace Sirstrap.Core.Deployment
                     FileSystemOperations.DeleteFile(archivePath);
                 }
 
-                scope.SetTag("entryCount", entryCount.ToString());
-
-                performanceTelemetry.RecordCounter("install.entries", new Dictionary<string, object>
-                {
-                    ["entries"] = entryCount,
-                    ["binaryType"] = configuration.BinaryType
-                });
+                scope.SetTag("entryCount", entryCount);
 
                 Log.Information("[*] Extracted the archive to {TargetDirectory}.", targetDirectory);
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "[!] Failed to install the archive.");
-                scope.MarkFailed();
+                scope.MarkFailed(ex.GetType().Name);
                 throw new InvalidOperationException($"Installation error: {ex.Message}", ex);
             }
         }

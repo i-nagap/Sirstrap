@@ -6,7 +6,9 @@ namespace Sirstrap.Core.Cleaner
         {
             using ITelemetryScope scope = performanceTelemetry.Measure("cleaner.run", new Dictionary<string, object>
             {
-                ["trigger"] = trigger
+                ["trigger"] = trigger,
+                ["cleanTempFolders"] = cleanTempFolders,
+                ["cleanProtectedFiles"] = cleanProtectedFiles
             });
 
             try
@@ -20,7 +22,7 @@ namespace Sirstrap.Core.Cleaner
             {
                 Log.Error(ex, "[!] Failed to run the {Trigger} cleanup.", trigger);
 
-                scope.MarkFailed();
+                scope.MarkFailed(ex.GetType().Name);
             }
         }
     }

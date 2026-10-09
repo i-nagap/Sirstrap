@@ -15,17 +15,19 @@ namespace Sirstrap.Core.Deployment
             var (version, source) = await ResolveAsync(allowOverride);
 
             scope.SetTag("source", source.ToString());
+            scope.SetTag("configuredSource", sirstrapConfiguration.RobloxVersionSource ?? string.Empty);
 
             if (string.IsNullOrEmpty(version))
-                scope.MarkFailed();
-            else
-                Log.Information("[*] Using the Roblox version {Version} (source: {Source}).", version, source);
-
-            performanceTelemetry.RecordCounter("version.resolve.outcome", new Dictionary<string, object>
             {
-                ["source"] = source.ToString(),
-                ["success"] = !string.IsNullOrEmpty(version)
-            });
+                scope.MarkFailed();
+
+                return version;
+            }
+
+            Log.Information("[*] Using the Roblox version {Version} (source: {Source}).", version, source);
+
+            performanceTelemetry.SetTag("roblox.version", version);
+            performanceTelemetry.SetTag("roblox.version_source", source.ToString());
 
             return version;
         }

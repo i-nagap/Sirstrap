@@ -3,86 +3,89 @@ namespace Sirstrap.Core.Telemetry
     public sealed class SentryPerformanceTelemetry : IPerformanceTelemetry
     {
         public void RecordCounter(string name, IReadOnlyDictionary<string, object>? tags = null)
-        {
-            try
-            {
-                SentrySdk.Metrics.EmitCounter(name, 1, BuildTags(tags));
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "[!] Failed to emit the counter {CounterName}.", name);
-            }
-        }
+            => Emit(name, () => SentrySdk.Metrics.EmitCounter(name, 1, Copy(tags)));
 
-        public void RecordDuration(string operation, TimeSpan elapsed, IReadOnlyDictionary<string, object>? tags = null)
-        {
-            try
-            {
-                Dictionary<string, object> enriched = BuildTags(tags);
-                enriched["elapsed_ms"] = (long)elapsed.TotalMilliseconds;
-
-                SentrySdk.Metrics.EmitCounter($"{operation}.duration", 1, enriched);
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "[!] Failed to emit the duration for {Operation}.", operation);
-            }
-        }
+        public void RecordDistribution(string name, double value, string unit, IReadOnlyDictionary<string, object>? tags = null)
+            => Emit(name, () => SentrySdk.Metrics.EmitDistribution(name, value, unit, Copy(tags)));
 
         public ITelemetryScope Measure(string operation, IReadOnlyDictionary<string, object>? tags = null)
         {
+            ISpan? span = null;
+            bool isRoot = false;
+
             try
             {
                 ISpan? current = SentrySdk.GetSpan();
 
                 if (current != null)
+                    span = current.StartChild(operation);
+                else
                 {
-                    ISpan child = current.StartChild(operation);
+                    ITransactionTracer transaction = SentrySdk.StartTransaction(operation, "task");
 
-                    ApplyTags(child, tags);
+                    SentrySdk.ConfigureScope(scope => scope.Transaction = transaction);
 
-                    return new SentrySpanScope(child);
+                    span = transaction;
+                    isRoot = true;
                 }
-
-                ITransactionTracer transaction = SentrySdk.StartTransaction(operation, "task");
-
-                ApplyTags(transaction, tags);
-
-                SentrySdk.ConfigureScope(scope => scope.Transaction = transaction);
-
-                return new SentrySpanScope(transaction);
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "[!] Failed to start the telemetry scope for {Operation}.", operation);
+                Log.Warning(ex, "[!] Failed to start the telemetry span for {Operation}.", operation);
+            }
 
-                return NullPerformanceTelemetry.Instance.Measure(operation, tags);
+            SentryScope telemetryScope = new(this, operation, span, isRoot);
+
+            if (tags != null)
+                foreach (var kvp in tags)
+                    telemetryScope.SetTag(kvp.Key, kvp.Value);
+
+            return telemetryScope;
+        }
+
+        public void SetTag(string key, string value)
+            => Emit(key, () => SentrySdk.ConfigureScope(scope => scope.SetTag(key, value)));
+
+        public void SetContext(string name, IReadOnlyDictionary<string, object> values)
+            => Emit(name, () => SentrySdk.ConfigureScope(scope => scope.Contexts[name] = Copy(values)));
+
+        private static Dictionary<string, object> Copy(IReadOnlyDictionary<string, object>? tags)
+            => tags == null ? [] : new Dictionary<string, object>(tags);
+
+        private static void Emit(string name, Action emit)
+        {
+            try
+            {
+                emit();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "[!] Failed to emit the telemetry {TelemetryName}.", name);
             }
         }
 
-        private static void ApplyTags(ISpan span, IReadOnlyDictionary<string, object>? tags)
+        private sealed class SentryScope(SentryPerformanceTelemetry telemetry, string operation, ISpan? span, bool isRoot) : ITelemetryScope
         {
-            if (tags == null)
-                return;
-
-            foreach (var kvp in tags)
-                span.SetTag(kvp.Key, kvp.Value?.ToString() ?? string.Empty);
-        }
-
-        private static Dictionary<string, object> BuildTags(IReadOnlyDictionary<string, object>? tags)
-            => tags == null ? [] : new Dictionary<string, object>(tags);
-
-        private sealed class SentrySpanScope : ITelemetryScope
-        {
-            private readonly ISpan _span;
+            private readonly Dictionary<string, object> _attributes = [];
+            private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
             private bool _failed;
+            private string? _outcome;
             private bool _disposed;
 
-            public SentrySpanScope(ISpan span) => _span = span;
+            public void MarkFailed(string? outcome = null)
+            {
+                _failed = true;
+                _outcome = outcome ?? _outcome;
+            }
 
-            public void MarkFailed() => _failed = true;
+            public void SetOutcome(string outcome) => _outcome = outcome;
 
-            public void SetTag(string key, string value) => _span.SetTag(key, value);
+            public void SetTag(string key, object value)
+            {
+                _attributes[key] = value;
+
+                Emit(key, () => span?.SetTag(key, value?.ToString() ?? string.Empty));
+            }
 
             public void Dispose()
             {
@@ -90,17 +93,31 @@ namespace Sirstrap.Core.Telemetry
                     return;
 
                 _disposed = true;
+                _stopwatch.Stop();
 
-                try
+                string outcome = _outcome ?? (_failed ? "Failed" : "Success");
+
+                _attributes["outcome"] = outcome;
+                _attributes["success"] = !_failed;
+
+                telemetry.RecordDistribution($"{operation}.duration", _stopwatch.Elapsed.TotalMilliseconds, "millisecond", _attributes);
+
+                Emit(operation, () =>
                 {
-                    _span.Finish(_failed ? SpanStatus.InternalError : SpanStatus.Ok);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "[!] Failed to finish the telemetry span.");
-                }
+                    if (span == null)
+                        return;
+
+                    span.SetTag("outcome", outcome);
+                    span.Finish(_failed ? SpanStatus.InternalError : SpanStatus.Ok);
+
+                    if (isRoot)
+                        SentrySdk.ConfigureScope(scope =>
+                        {
+                            if (ReferenceEquals(scope.Transaction, span))
+                                scope.Transaction = null;
+                        });
+                });
             }
         }
-
     }
 }
