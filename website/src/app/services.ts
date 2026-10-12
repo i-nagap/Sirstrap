@@ -1,15 +1,15 @@
 import { createContext } from "react";
-import { ACCOUNTS, GITHUB_API, announcementUrl } from "@/config/site";
-import { GithubAccounts } from "@/domain/accounts";
+import { ACCOUNTS, CODEBERG_API, RELEASES_URL, announcementUrl } from "@/config/site";
+import { Accounts } from "@/domain/accounts";
 import type { AccountProbe, AnnouncementSource, ContributorSource, ReleaseSource } from "@/domain/ports";
-import { GithubApi } from "@/infrastructure/github-api";
-import { GithubAccountProbe } from "@/infrastructure/github-account-probe";
-import { GithubContributorSource } from "@/infrastructure/github-contributor-source";
-import { GithubReleaseSource } from "@/infrastructure/github-release-source";
+import { CodebergApi } from "@/infrastructure/codeberg-api";
+import { CodebergAccountProbe } from "@/infrastructure/codeberg-account-probe";
+import { CodebergContributorSource } from "@/infrastructure/codeberg-contributor-source";
+import { SirstrapReleaseSource } from "@/infrastructure/sirstrap-release-source";
 import { RemoteAnnouncementSource } from "@/infrastructure/remote-announcement-source";
 
 export interface Services {
-  accounts: GithubAccounts;
+  accounts: Accounts;
   releases: ReleaseSource;
   contributors: ContributorSource;
   announcements: AnnouncementSource;
@@ -17,15 +17,15 @@ export interface Services {
 }
 
 export function createServices(): Services {
-  const accounts = new GithubAccounts(ACCOUNTS);
-  const api = new GithubApi(accounts, GITHUB_API);
+  const accounts = new Accounts(ACCOUNTS);
+  const api = new CodebergApi(accounts, CODEBERG_API);
 
   return {
     accounts,
-    releases: new GithubReleaseSource(api),
-    contributors: new GithubContributorSource(api),
+    releases: new SirstrapReleaseSource(RELEASES_URL),
+    contributors: new CodebergContributorSource(api),
     announcements: new RemoteAnnouncementSource(accounts, announcementUrl),
-    accountProbe: new GithubAccountProbe(accounts, api),
+    accountProbe: new CodebergAccountProbe(accounts, api),
   };
 }
 

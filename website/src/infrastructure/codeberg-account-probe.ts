@@ -1,13 +1,13 @@
-import type { GithubAccounts } from "@/domain/accounts";
+import type { Accounts } from "@/domain/accounts";
 import type { AccountProbe } from "@/domain/ports";
-import type { GithubApi } from "@/infrastructure/github-api";
+import type { CodebergApi } from "@/infrastructure/codeberg-api";
 
-export class GithubAccountProbe implements AccountProbe {
+export class CodebergAccountProbe implements AccountProbe {
   private resolved: Promise<string> | null = null;
 
   constructor(
-    private readonly accounts: GithubAccounts,
-    private readonly api: GithubApi,
+    private readonly accounts: Accounts,
+    private readonly api: CodebergApi,
   ) {}
 
   reachable = (): Promise<string> => {

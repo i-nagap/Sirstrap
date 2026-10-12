@@ -8,7 +8,7 @@ const MAX_AVATARS = 8;
 const SKELETON_COUNT = 3;
 const AVATAR = "h-5 w-5 rounded-full border-2 border-background bg-background object-cover";
 
-const avatarOf = (account: string) => `https://github.com/${account}.png`;
+const avatarOf = (account: string) => `https://codeberg.org/${account}.png`;
 
 const stopPropagation = (event: MouseEvent) => event.stopPropagation();
 
@@ -21,7 +21,7 @@ export interface ProductCredits {
 export function ProductByline({ credits, accent }: { credits: ProductCredits; accent: AccentStyle }) {
   const { accounts } = useServices();
   const { author, contributors, loading } = credits;
-  const authorUrl = `https://github.com/${author}`;
+  const authorUrl = `https://codeberg.org/${author}`;
   const others = contributors.filter(contributor => !accounts.owns(contributor.login)).slice(0, MAX_AVATARS - 1);
   const trailing = others.length + (loading ? SKELETON_COUNT : 0);
 

@@ -1,18 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { GithubAccounts } from "@/domain/accounts";
+import { Accounts } from "@/domain/accounts";
 
-const accounts = new GithubAccounts(["first", "second"]);
+const accounts = new Accounts(["first", "second"]);
 
-describe("GithubAccounts", () => {
-  it("rewrites every account occurrence in a url", () => {
-    expect(accounts.withAccount("https://github.com/first/Sirstrap/tree/main/src", "second")).toBe("https://github.com/second/Sirstrap/tree/main/src");
-    expect(accounts.withAccount("https://github.com/first.png", "second")).toBe("https://github.com/second.png");
+describe("Accounts", () => {
+  it("rewrites the owner in a url", () => {
+    expect(accounts.withAccount("https://codeberg.org/first/Sirstrap/tree/main/src", "second")).toBe("https://codeberg.org/second/Sirstrap/tree/main/src");
+    expect(accounts.withAccount("https://codeberg.org/first.png", "second")).toBe("https://codeberg.org/second.png");
     expect(accounts.withAccount("first/sirhurt.cleaner", "second")).toBe("second/sirhurt.cleaner");
-    expect(accounts.withAccount("https://github.com/firstborn/x", "second")).toBe("https://github.com/firstborn/x");
+    expect(accounts.withAccount("https://codeberg.org/firstborn/x", "second")).toBe("https://codeberg.org/firstborn/x");
+    expect(accounts.withAccount("https://codeberg.org/first/first/src/branch/main/src/first.CLI", "second")).toBe("https://codeberg.org/second/first/src/branch/main/src/first.CLI");
   });
 
   it("keeps the repository name when swapping the account", () => {
-    expect(accounts.repoFor("first/KneeSurgery", "second")).toBe("second/KneeSurgery");
+    expect(accounts.repoFor("first/Sirstrap", "second")).toBe("second/Sirstrap");
   });
 
   it("recognizes owned logins case-insensitively", () => {

@@ -40,13 +40,13 @@ export function HomePage() {
             handlers={focus.handlersOf(index)}
             stats={{
               downloads: releases.value.downloads[product.asset],
-              version: releases.value.versions[repo],
+              version: releases.value.version,
               mostPopular: mostPopular === product.asset,
               loading: releases.loading,
             }}
             credits={{ author, contributors: contributors.value[repo] ?? [], loading: contributors.loading }}
             links={{
-              download: accounts.withAccount(downloadUrlOf(product), author),
+              download: downloadUrlOf(product),
               source: accounts.withAccount(product.source, author),
             }}
           />

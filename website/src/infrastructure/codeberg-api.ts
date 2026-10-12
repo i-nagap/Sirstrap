@@ -1,4 +1,4 @@
-import type { GithubAccounts } from "@/domain/accounts";
+import type { Accounts } from "@/domain/accounts";
 
 export type Fetch = (input: string) => Promise<Response>;
 
@@ -6,19 +6,12 @@ export const browserFetch: Fetch = input => fetch(input);
 
 const NEXT_PAGE = /<([^>]+)>;\s*rel="next"/;
 
-export class GithubApi {
+export class CodebergApi {
   constructor(
-    private readonly accounts: GithubAccounts,
+    private readonly accounts: Accounts,
     private readonly baseUrl: string,
     private readonly fetcher: Fetch = browserFetch,
   ) {}
-
-  repoJson<T>(repo: string, path: string, map: (json: unknown) => T | null): Promise<T | null> {
-    return this.accounts.firstResolved(async account => {
-      const response = await this.fetcher(this.repoUrl(repo, account, path));
-      return response.ok ? map(await response.json()) : null;
-    });
-  }
 
   repoPages<T>(repo: string, path: string): Promise<T[] | null> {
     return this.accounts.firstResolved(async account => {

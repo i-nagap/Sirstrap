@@ -1,9 +1,9 @@
-export class GithubAccounts {
+export class Accounts {
   private readonly pattern: RegExp;
   private readonly lowered: string[];
 
   constructor(readonly all: readonly string[]) {
-    this.pattern = new RegExp(`(?<=^|[/@.])(${all.join("|")})(?=$|[/.])`, "g");
+    this.pattern = new RegExp(`(?<=^|codeberg\\.org/)(${all.join("|")})(?=$|[/.])`, "g");
     this.lowered = all.map(account => account.toLowerCase());
   }
 

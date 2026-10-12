@@ -4,6 +4,7 @@ export interface ReleaseAsset {
 }
 
 export interface Release {
+  tag: string;
   assets: ReleaseAsset[];
 }
 
@@ -14,8 +15,7 @@ export interface Contributor {
 }
 
 export interface ReleaseSource {
-  latestTag(repo: string): Promise<string | null>;
-  allReleases(repo: string): Promise<Release[]>;
+  releases(): Promise<Release[]>;
 }
 
 export interface ContributorSource {

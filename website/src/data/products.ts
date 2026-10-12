@@ -1,9 +1,8 @@
 import type { Product } from "@/domain/product";
-import { OWNER } from "@/config/site";
+import { REPO_URL } from "@/config/site";
 import iconCleaner from "../../../src/SirHurt.Cleaner.CLI/Assets/favicon.ico";
 import iconCli from "../../../src/Sirstrap.CLI/Assets/favicon.ico";
 import iconUi from "../../../src/Sirstrap.UI/Assets/favicon.ico";
-import iconKnee from "@/assets/kneesurgery.ico";
 import shotUiMain from "../../../images/Sirstrap.png";
 import shotUiSettings from "../../../images/Settings.png";
 
@@ -14,10 +13,9 @@ export const products: Product[] = [
       "A complete cleanup utility that wipes Roblox, SirHurt, and Sirstrap from your filesystem and registry.",
     asset: "SirHurt.Cleaner.CLI.zip",
     variants: ["SirHurt.Cleaner.CLI_fat.zip", "SirHurt.Cleaner.CLI.cab", "SirHurt.Cleaner.CLI_fat.cab"],
-    externalDownloads: [{ repo: `${OWNER}/sirhurt.cleaner`, match: { type: "exact", asset: "SirHurt.Cleaner.exe" } }],
     recommended: false,
     icon: iconCleaner,
-    source: `https://github.com/${OWNER}/Sirstrap/tree/main/src/SirHurt.Cleaner.CLI`,
+    source: `${REPO_URL}/src/branch/main/src/SirHurt.Cleaner.CLI`,
     accent: "red",
     title: { kind: "typewriter", head: "SirHurt.Cleaner", tail: ".CLI" },
     core: true,
@@ -28,10 +26,9 @@ export const products: Product[] = [
       "An alternative Roblox bootstrapper CLI packed with additional features.",
     asset: "Sirstrap.CLI.zip",
     variants: ["Sirstrap.CLI_fat.zip", "Sirstrap.CLI.cab", "Sirstrap.CLI_fat.cab", "Sirstrap.exe"],
-    externalDownloads: [],
     recommended: false,
     icon: iconCli,
-    source: `https://github.com/${OWNER}/Sirstrap/tree/main/src/Sirstrap.CLI`,
+    source: `${REPO_URL}/src/branch/main/src/Sirstrap.CLI`,
     accent: "teal",
     title: { kind: "typewriter", head: "Sirstrap", tail: ".CLI" },
     core: true,
@@ -42,10 +39,9 @@ export const products: Product[] = [
       "An alternative Roblox bootstrapper UI packed with additional features.",
     asset: "Sirstrap.UI.zip",
     variants: ["Sirstrap.UI_fat.zip", "Sirstrap.UI.cab", "Sirstrap.UI_fat.cab"],
-    externalDownloads: [],
     recommended: true,
     icon: iconUi,
-    source: `https://github.com/${OWNER}/Sirstrap/tree/main/src/Sirstrap.UI`,
+    source: `${REPO_URL}/src/branch/main/src/Sirstrap.UI`,
     accent: "amber",
     title: { kind: "shimmer", head: "Sirstrap", tail: ".UI" },
     core: true,
@@ -53,19 +49,5 @@ export const products: Product[] = [
       { src: shotUiMain, alt: "Sirstrap.UI main window" },
       { src: shotUiSettings, alt: "Sirstrap.UI settings window" },
     ],
-  },
-  {
-    name: "KneeSurgery",
-    description: "A DLL for building custom UIs for SirHurt.",
-    asset: "KneeSurgery",
-    variants: [],
-    externalDownloads: [{ repo: `${OWNER}/KneeSurgery`, match: { type: "prefix", prefix: "KneeSurgery_" } }],
-    recommended: false,
-    icon: iconKnee,
-    source: `https://github.com/${OWNER}/KneeSurgery`,
-    accent: "mint",
-    title: { kind: "rapid", head: "Knee", tail: "Surgery", glyph: "e", max: 15 },
-    repo: `${OWNER}/KneeSurgery`,
-    downloadUrl: `https://github.com/${OWNER}/KneeSurgery/releases/latest`,
   },
 ];

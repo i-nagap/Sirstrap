@@ -1,12 +1,5 @@
-import { MAIN_REPO, REPO_URL } from "@/config/site";
+import { MAIN_REPO, RELEASES_URL } from "@/config/site";
 import type { Accent } from "@/domain/accent";
-
-export type AssetMatcher = { type: "exact"; asset: string } | { type: "prefix"; prefix: string };
-
-export interface ExternalDownload {
-  repo: string;
-  match: AssetMatcher;
-}
 
 export type TitleAnimation =
   | { kind: "plain"; head: string }
@@ -24,7 +17,6 @@ export interface Product {
   description: string;
   asset: string;
   variants: string[];
-  externalDownloads: ExternalDownload[];
   recommended: boolean;
   icon: string;
   source: string;
@@ -32,14 +24,12 @@ export interface Product {
   title: TitleAnimation;
   core?: boolean;
   repo?: string;
-  downloadUrl?: string;
   screenshots?: Screenshot[];
 }
 
 export const repoOf = (product: Product) => product.repo ?? MAIN_REPO;
 
-export const downloadUrlOf = (product: Product) =>
-  product.downloadUrl ?? `${REPO_URL}/releases/latest/download/${product.asset}`;
+export const downloadUrlOf = (product: Product) => `${RELEASES_URL}download.php?file=${encodeURIComponent(product.asset)}`;
 
 export const unique = <T,>(values: T[]): T[] => [...new Set(values)];
 

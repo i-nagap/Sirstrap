@@ -1,10 +1,10 @@
-import type { GithubAccounts } from "@/domain/accounts";
+import type { Accounts } from "@/domain/accounts";
 import type { AnnouncementSource } from "@/domain/ports";
-import { browserFetch, type Fetch } from "@/infrastructure/github-api";
+import { browserFetch, type Fetch } from "@/infrastructure/codeberg-api";
 
 export class RemoteAnnouncementSource implements AnnouncementSource {
   constructor(
-    private readonly accounts: GithubAccounts,
+    private readonly accounts: Accounts,
     private readonly urlFor: (account: string) => string,
     private readonly fetcher: Fetch = browserFetch,
   ) {}

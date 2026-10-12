@@ -1,4 +1,4 @@
-import type { AssetMatcher, Product } from "@/domain/product";
+import type { Product } from "@/domain/product";
 import type { Release } from "@/domain/ports";
 
 export type AssetCounts = Record<string, number>;
@@ -13,18 +13,7 @@ export function countAssets(releases: Release[]): AssetCounts {
   return counts;
 }
 
-function matchedCount(matcher: AssetMatcher, counts: AssetCounts): number {
-  if (matcher.type === "exact") return counts[matcher.asset] ?? 0;
-  return Object.entries(counts)
-    .filter(([name]) => name.startsWith(matcher.prefix))
-    .reduce((sum, [, count]) => sum + count, 0);
-}
-
-export function aggregateDownloads(
-  products: Product[],
-  mainCounts: AssetCounts,
-  externalCountsByRepo: Record<string, AssetCounts>,
-): AssetCounts {
+export function aggregateDownloads(products: Product[], mainCounts: AssetCounts): AssetCounts {
   const totals: AssetCounts = { ...mainCounts };
 
   const add = (asset: string, amount: number) => {
@@ -38,9 +27,6 @@ export function aggregateDownloads(
         add(product.asset, count);
         delete totals[variant];
       }
-    }
-    for (const external of product.externalDownloads) {
-      add(product.asset, matchedCount(external.match, externalCountsByRepo[external.repo] ?? {}));
     }
   }
 
