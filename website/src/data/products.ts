@@ -11,7 +11,7 @@ export const products: Product[] = [
   {
     name: "SirHurt.Cleaner.CLI",
     description:
-      "A complete cleanup utility that wipes Roblox, SirHurt, and Sirstrap from your filesystem and registry — built by exploiters, for exploiters.",
+      "A complete cleanup utility that wipes Roblox, SirHurt, and Sirstrap from your filesystem and registry.",
     asset: "SirHurt.Cleaner.CLI.zip",
     variants: ["SirHurt.Cleaner.CLI_fat.zip", "SirHurt.Cleaner.CLI.cab", "SirHurt.Cleaner.CLI_fat.cab"],
     externalDownloads: [{ repo: `${OWNER}/sirhurt.cleaner`, match: { type: "exact", asset: "SirHurt.Cleaner.exe" } }],
@@ -25,7 +25,7 @@ export const products: Product[] = [
   {
     name: "Sirstrap.CLI",
     description:
-      "An alternative Roblox bootstrapper CLI packed with additional features — built by exploiters, for exploiters.",
+      "An alternative Roblox bootstrapper CLI packed with additional features.",
     asset: "Sirstrap.CLI.zip",
     variants: ["Sirstrap.CLI_fat.zip", "Sirstrap.CLI.cab", "Sirstrap.CLI_fat.cab", "Sirstrap.exe"],
     externalDownloads: [],
@@ -39,7 +39,7 @@ export const products: Product[] = [
   {
     name: "Sirstrap.UI",
     description:
-      "An alternative Roblox bootstrapper UI packed with additional features — built by exploiters, for exploiters.",
+      "An alternative Roblox bootstrapper UI packed with additional features.",
     asset: "Sirstrap.UI.zip",
     variants: ["Sirstrap.UI_fat.zip", "Sirstrap.UI.cab", "Sirstrap.UI_fat.cab"],
     externalDownloads: [],
@@ -56,7 +56,7 @@ export const products: Product[] = [
   },
   {
     name: "KneeSurgery",
-    description: "A DLL for building custom UIs for SirHurt — built by exploiters, for exploiters.",
+    description: "A DLL for building custom UIs for SirHurt.",
     asset: "KneeSurgery",
     variants: [],
     externalDownloads: [{ repo: `${OWNER}/KneeSurgery`, match: { type: "prefix", prefix: "KneeSurgery_" } }],
