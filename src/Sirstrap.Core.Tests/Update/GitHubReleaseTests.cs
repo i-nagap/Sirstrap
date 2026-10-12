@@ -26,6 +26,24 @@ namespace Sirstrap.Core.Tests.Update
         }
 
         [Fact]
+        public void FromJson_ParsesSirstrapFields()
+        {
+            GitHubRelease release = GitHubRelease.FromJson(Parse("""
+            {
+                "tagName": "v1.0.0.0-beta",
+                "isDraft": true,
+                "changelog": "changelog",
+                "assets": [ { "fileName": "Sirstrap.CLI.zip", "downloadUrl": "https://example.com/cli.zip" } ]
+            }
+            """));
+
+            Assert.Equal("v1.0.0.0-beta", release.TagName);
+            Assert.True(release.IsDraft);
+            Assert.Equal("changelog", release.Body);
+            Assert.Equal("https://example.com/cli.zip", release.FindAssetDownloadUri("Sirstrap.CLI.zip"));
+        }
+
+        [Fact]
         public void FromJson_UsesDefaults_WhenFieldsMissing()
         {
             GitHubRelease release = GitHubRelease.FromJson(Parse("{}"));

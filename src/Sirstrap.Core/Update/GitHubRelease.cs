@@ -6,13 +6,9 @@ namespace Sirstrap.Core.Update
     {
         public static GitHubRelease FromJson(JsonElement element)
         {
-            var tagName = element.TryGetProperty("tag_name", out JsonElement tagNameElement)
-                ? tagNameElement.GetString() ?? string.Empty
-                : string.Empty;
-            var isDraft = element.TryGetProperty("draft", out JsonElement draftElement) && draftElement.GetBoolean();
-            var body = element.TryGetProperty("body", out JsonElement bodyElement)
-                ? bodyElement.GetString() ?? string.Empty
-                : string.Empty;
+            var tagName = GetString(element, "tagName", "tag_name");
+            var isDraft = TryGetProperty(element, out JsonElement draftElement, "isDraft", "draft") && draftElement.GetBoolean();
+            var body = GetString(element, "changelog", "body");
 
             return new GitHubRelease(tagName, isDraft, body, ParseAssets(element));
         }
@@ -29,22 +25,31 @@ namespace Sirstrap.Core.Update
 
             foreach (JsonElement assetElement in assetsElement.EnumerateArray())
             {
-                if (!assetElement.TryGetProperty("name", out JsonElement nameElement))
-                    continue;
-
-                var name = nameElement.GetString();
+                var name = GetString(assetElement, "fileName", "name");
 
                 if (string.IsNullOrEmpty(name))
                     continue;
 
-                var downloadUri = assetElement.TryGetProperty("browser_download_url", out JsonElement uriElement)
-                    ? uriElement.GetString() ?? string.Empty
-                    : string.Empty;
-
-                assets.Add(new GitHubReleaseAsset(name, downloadUri));
+                assets.Add(new GitHubReleaseAsset(name, GetString(assetElement, "downloadUrl", "browser_download_url")));
             }
 
             return assets;
+        }
+
+        private static string GetString(JsonElement element, params string[] propertyNames)
+            => TryGetProperty(element, out JsonElement propertyElement, propertyNames) ? propertyElement.GetString() ?? string.Empty : string.Empty;
+
+        private static bool TryGetProperty(JsonElement element, out JsonElement propertyElement, params string[] propertyNames)
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                if (element.TryGetProperty(propertyName, out propertyElement))
+                    return true;
+            }
+
+            propertyElement = default;
+
+            return false;
         }
     }
 }
