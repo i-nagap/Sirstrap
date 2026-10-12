@@ -1,21 +1,7 @@
-import { useEffect, useState } from "react";
-import { OWNER } from "@/config/site.config";
-import { reachableAccount } from "@/services/github-accounts";
+import { useAsync } from "@/hooks/useAsync";
+import { useServices } from "@/hooks/useServices";
 
 export function useReachableAccount(): string {
-  const [account, setAccount] = useState(OWNER);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    reachableAccount().then(resolved => {
-      if (!cancelled) setAccount(resolved);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return account;
+  const { accountProbe, accounts } = useServices();
+  return useAsync(accountProbe.reachable, accounts.primary).value;
 }

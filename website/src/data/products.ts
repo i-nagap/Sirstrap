@@ -1,5 +1,5 @@
 import type { Product } from "@/domain/product";
-import { OWNER } from "@/config/site.config";
+import { OWNER } from "@/config/site";
 import iconCleaner from "../../../src/SirHurt.Cleaner.CLI/Assets/favicon.ico";
 import iconCli from "../../../src/Sirstrap.CLI/Assets/favicon.ico";
 import iconUi from "../../../src/Sirstrap.UI/Assets/favicon.ico";

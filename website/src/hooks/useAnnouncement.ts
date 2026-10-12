@@ -1,20 +1,9 @@
-import { useEffect, useState } from "react";
-import { announcementRepository, type AnnouncementRepository } from "@/services/announcement-repository";
+import { useCallback } from "react";
+import { useAsync } from "@/hooks/useAsync";
+import { useServices } from "@/hooks/useServices";
 
-export function useAnnouncement(repository: AnnouncementRepository = announcementRepository): string | null {
-  const [announcement, setAnnouncement] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    repository.fetch().then(value => {
-      if (!cancelled && value) setAnnouncement(value);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [repository]);
-
-  return announcement;
+export function useAnnouncement(): string | null {
+  const { announcements } = useServices();
+  const load = useCallback(() => announcements.current(), [announcements]);
+  return useAsync(load, null).value;
 }

@@ -1,10 +1,13 @@
-export const MOTION = {
-  duration: { fast: 200, base: 300, slow: 500 },
-  easing: "cubic-bezier(0.4, 0, 0.2, 1)",
-} as const;
+export const EASING = "cubic-bezier(0.4, 0, 0.2, 1)";
+export const DURATION = 500;
 
-export const transition = (properties: string[], duration: number = MOTION.duration.slow) =>
-  properties.map(property => `${property} ${duration}ms ${MOTION.easing}`).join(", ");
+export const transition = (properties: string[], duration = DURATION) =>
+  properties.map(property => `${property} ${duration}ms ${EASING}`).join(", ");
+
+export interface Jitter {
+  min: number;
+  jitter: number;
+}
 
 export const TITLE_TIMING = {
   startDelay: 5000,
@@ -15,4 +18,4 @@ export const TITLE_TIMING = {
   erase: { min: 25, jitter: 25 },
 } as const;
 
-export const jitter = (range: { min: number; jitter: number }) => range.min + Math.random() * range.jitter;
+export const jitter = ({ min, jitter }: Jitter) => min + Math.random() * jitter;

@@ -1,47 +1,13 @@
-import { useEffect, useState } from "react";
-import { MAIN_REPO } from "@/config/site.config";
+import { useCallback } from "react";
+import { loadContributors, type ContributorsByRepo } from "@/application/contributors";
 import type { Product } from "@/domain/product";
-import {
-  githubContributorRepository,
-  type Contributor,
-  type ContributorRepository,
-} from "@/services/contributor-repository";
+import { useAsync, type AsyncState } from "@/hooks/useAsync";
+import { useServices } from "@/hooks/useServices";
 
-const unique = <T,>(values: T[]): T[] => [...new Set(values)];
+const NONE: ContributorsByRepo = {};
 
-export interface ContributorsData {
-  byRepo: Record<string, Contributor[]>;
-  loading: boolean;
-}
-
-export function useContributors(
-  products: Product[],
-  repository: ContributorRepository = githubContributorRepository,
-): ContributorsData {
-  const [byRepo, setByRepo] = useState<Record<string, Contributor[]>>({});
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const repos = unique(products.map(product => product.repo ?? MAIN_REPO));
-
-    Promise.all(repos.map(async repo => [repo, await repository.fetchContributors(repo)] as const))
-      .then(entries => {
-        if (cancelled) return;
-        const map: Record<string, Contributor[]> = {};
-        for (const [repo, contributors] of entries) map[repo] = contributors;
-        setByRepo(map);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [products, repository]);
-
-  return { byRepo, loading };
+export function useContributors(products: Product[]): AsyncState<ContributorsByRepo> {
+  const { contributors } = useServices();
+  const load = useCallback(() => loadContributors(products, contributors), [products, contributors]);
+  return useAsync(load, NONE);
 }
