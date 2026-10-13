@@ -1,0 +1,15 @@
+global using Microsoft.Win32;
+global using Serilog;
+global using System.Diagnostics;
+global using System.Diagnostics.CodeAnalysis;
+global using System.Globalization;
+global using System.IO.Compression;
+global using System.IO.Pipes;
+global using System.Net;
+global using System.Security.Cryptography;
+global using System.Security.Principal;
+global using System.Text;
+global using System.Text.Json;
+global using System.Text.Json.Serialization;
+global using System.Text.Json.Serialization.Metadata;
+global using System.Text.RegularExpressions;

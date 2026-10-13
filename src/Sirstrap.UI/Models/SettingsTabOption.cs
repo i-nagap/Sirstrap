@@ -1,4 +1,4 @@
 namespace Sirstrap.UI.Models
 {
-    public sealed record SettingsTabOption(string Display, string? Category, bool IsPreview = false);
+    public sealed record SettingsTabOption(LocalizedString Display, string? Category, bool IsPreview = false);
 }

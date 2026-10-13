@@ -1,239 +1,57 @@
-﻿namespace Sirstrap.UI.ViewModels
+namespace Sirstrap.UI.ViewModels
 {
     public partial class SettingsWindowViewModel : ViewModelBase
     {
-#pragma warning disable S1075 // fixed Sirstrap project endpoint, not a deployment specific path
-        private const string ANNOUNCEMENTS_URI_PREFIX = "https://raw.githubusercontent.com/";
-#pragma warning restore S1075
+        private const string SirHurtBootstrapperFileName = "bootstrapper.exe";
 
-        private static readonly SettingsTabOption _fastFlagsTab = new("FastFlags", "FastFlags", IsPreview: true);
+        private static readonly SettingsTabOption _fastFlagsTab = new(Strings.Instance.Get("Tab_FastFlags"), "FastFlags", IsPreview: true);
 
-        private readonly HttpClient _httpClient;
-        private readonly ICleanupService _cleanupService;
-        private readonly IFastFlagService _fastFlagService;
-        private readonly IUninstallService _uninstallService;
-        private readonly IWeaoService _weaoService;
+        private readonly AppAppearance _appearance;
 
-        private bool _isRefreshingRawText;
+        private readonly CleanupService _cleanupService;
 
-        [ObservableProperty]
-        private string _announcements = string.Empty;
+        private readonly SirstrapDirectories _directories;
 
-        [ObservableProperty]
-        private string _currentFullVersion;
+        private readonly SystemTray _systemTray;
 
-        [ObservableProperty]
-        private ObservableCollection<FastFlagEntry> _fastFlags = [];
+        private readonly SirstrapUninstaller _uninstaller;
 
-        [ObservableProperty]
-        private ObservableCollection<string> _fontFamilies = [];
+        private readonly SirstrapUpdater _updater;
 
-        [ObservableProperty]
-        private string _newFastFlagName = string.Empty;
+        private readonly VersionSourceCatalog _versionSourceCatalog;
 
-        [ObservableProperty]
-        private string _newFastFlagValue = string.Empty;
-
-        [ObservableProperty]
-        private string _rawText = string.Empty;
-
-        [ObservableProperty]
-        private ObservableCollection<VersionSourceOption> _versionSources = [];
-
-        [ObservableProperty]
-        private VersionSourceOption? _selectedVersionSource;
-
-        [ObservableProperty]
-        private LanguageOption _selectedLanguage;
-
-        [ObservableProperty]
-        private string _searchText = string.Empty;
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsFastFlagsListVisible))]
-        [NotifyPropertyChangedFor(nameof(IsFastFlagsRawVisible))]
-        [NotifyPropertyChangedFor(nameof(IsSearchVisible))]
-        private FastFlagsTab _selectedFastFlagsTab = FastFlagsTab.List;
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsFastFlagsTabSelected))]
-        [NotifyPropertyChangedFor(nameof(IsFastFlagsListVisible))]
-        [NotifyPropertyChangedFor(nameof(IsFastFlagsRawVisible))]
-        [NotifyPropertyChangedFor(nameof(IsSearchVisible))]
-        private SettingsTabOption _selectedSettingsTab;
-
-        [ObservableProperty]
-        private Settings _settings;
-
-        [ObservableProperty]
-        private bool _isCleanerRunning;
-
-        public SettingsWindowViewModel(HttpClient httpClient, Settings settings, ISirstrapVersion sirstrapVersion, IUninstallService uninstallService, IWeaoService weaoService, ICleanupService cleanupService, IFastFlagService fastFlagService)
+        public SettingsWindowViewModel(EditableSettings settings, SirstrapVersionInfo versionInfo, SirHurtAccount sirHurtAccount, SirstrapDirectories directories, SirstrapUpdater updater, CleanupService cleanupService, SirstrapUninstaller uninstaller, VersionSourceCatalog versionSourceCatalog, AppAppearance appearance, SystemTray systemTray)
         {
-            _httpClient = httpClient;
-            _settings = settings;
-            _currentFullVersion = sirstrapVersion.GetFullVersion();
-            _uninstallService = uninstallService;
-            _weaoService = weaoService;
+            Settings = settings;
+            FastFlagsEditor = new FastFlagsEditor(settings);
+            CurrentFullVersion = versionInfo.GetDisplayVersion();
+            SirHurtPath = sirHurtAccount.GetInstallationDirectory();
+            CanRunSirHurt = File.Exists(SirHurtBootstrapperPath);
+
+            _directories = directories;
+            _updater = updater;
             _cleanupService = cleanupService;
-            _fastFlagService = fastFlagService;
-            _selectedSettingsTab = SettingsTabs[0];
+            _uninstaller = uninstaller;
+            _versionSourceCatalog = versionSourceCatalog;
+            _appearance = appearance;
+            _systemTray = systemTray;
 
-            _selectedLanguage = Languages.FirstOrDefault(option => string.Equals(option.Value, settings.SirstrapLanguage, StringComparison.OrdinalIgnoreCase)) ?? Languages[0];
+            SelectedSettingsTab = SettingsTabs[0];
+            SelectedLanguage = Languages.FirstOrDefault(language => string.Equals(language.Value, settings.SirstrapLanguage, StringComparison.OrdinalIgnoreCase)) ?? Languages[0];
 
-            GetFontFamilies();
-            ApplyFastFlagsSearch();
+            LoadFontFamilies();
 
-            _ = LoadAnnouncementsAsync();
+            _ = LoadChangelogAsync();
             _ = LoadVersionSourcesAsync();
         }
-
-        public bool IsFastFlagsTabSelected => SelectedSettingsTab == _fastFlagsTab;
-
-        public bool IsFastFlagsListVisible => IsFastFlagsTabSelected && SelectedFastFlagsTab == FastFlagsTab.List;
-
-        public bool IsFastFlagsRawVisible => IsFastFlagsTabSelected && SelectedFastFlagsTab == FastFlagsTab.Raw;
-
-        public bool IsSearchVisible => !IsFastFlagsRawVisible;
-
-        private async Task LoadAnnouncementsAsync()
-        {
-            try
-            {
-                var announcements = await GitHubAccounts.ResolveAsync(async account =>
-                {
-                    var text = (await _httpClient.GetStringAsync($"{ANNOUNCEMENTS_URI_PREFIX}{account}/Sirstrap/main/announcements.txt")).Trim();
-
-                    return string.IsNullOrEmpty(text) ? null : text;
-                }) ?? string.Empty;
-
-                await Dispatcher.UIThread.InvokeAsync(() => Announcements = announcements);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, nameof(LoadAnnouncementsAsync));
-            }
-        }
-
-        private async Task LoadVersionSourcesAsync()
-        {
-            try
-            {
-                var options = await VersionSourceCatalog.BuildAsync(_weaoService);
-
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    VersionSources = new ObservableCollection<VersionSourceOption>(options);
-                    SelectedVersionSource = VersionSources.FirstOrDefault(option => string.Equals(option.Value, Settings.RobloxVersionSource, StringComparison.OrdinalIgnoreCase))
-                        ?? VersionSources.FirstOrDefault();
-                });
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, nameof(LoadVersionSourcesAsync));
-            }
-        }
-
-        partial void OnRawTextChanged(string value)
-        {
-            if (_isRefreshingRawText)
-                return;
-
-            var flags = string.IsNullOrWhiteSpace(value) ? new Dictionary<string, string>() : _fastFlagService.DeserializeFlags(value);
-
-            if (flags == null)
-                return;
-
-            Settings.RobloxFastFlags = [.. flags.Select(flag => new FastFlagEntry { Name = flag.Key, Value = flag.Value })];
-
-            ApplyFastFlagsSearch();
-        }
-
-        partial void OnSearchTextChanged(string value) => ApplyFastFlagsSearch();
-
-        partial void OnSelectedFastFlagsTabChanged(FastFlagsTab value)
-        {
-            if (value != FastFlagsTab.Raw)
-                return;
-
-            _isRefreshingRawText = true;
-
-            RawText = _fastFlagService.SerializeFlags(GetFastFlags());
-
-            _isRefreshingRawText = false;
-        }
-
-        partial void OnSelectedLanguageChanged(LanguageOption value)
-        {
-            if (value == null)
-                return;
-
-            Settings.SirstrapLanguage = value.Value;
-        }
-
-        partial void OnSelectedVersionSourceChanged(VersionSourceOption? value)
-        {
-            if (value != null)
-                Settings.RobloxVersionSource = value.Value;
-        }
-
-        private void ApplyFastFlagsSearch()
-        {
-            var term = SearchText.Trim();
-            var hasTerm = !string.IsNullOrEmpty(term);
-
-            foreach (var entry in Settings.RobloxFastFlags)
-                entry.Opacity = !hasTerm || Matches(entry, term) ? 1 : 0.4;
-
-            IEnumerable<FastFlagEntry> entries = Settings.RobloxFastFlags;
-
-            if (hasTerm)
-                entries = entries.OrderByDescending(entry => Matches(entry, term));
-
-            FastFlags = [.. entries];
-        }
-
-        private Dictionary<string, string> GetFastFlags()
-        {
-            Dictionary<string, string> flags = new(StringComparer.Ordinal);
-
-            foreach (var entry in Settings.RobloxFastFlags.Where(entry => !string.IsNullOrWhiteSpace(entry.Name)))
-                flags[entry.Name.Trim()] = entry.Value;
-
-            return flags;
-        }
-
-        private static bool Matches(FastFlagEntry entry, string term) => entry.Name.Contains(term, StringComparison.OrdinalIgnoreCase);
 
         [RelayCommand]
         private void AddFastFlag()
         {
-            if (string.IsNullOrWhiteSpace(NewFastFlagName))
-                return;
-
-            FastFlagEntry entry = new() { Name = NewFastFlagName.Trim(), Value = NewFastFlagValue };
-
-            var index = 0;
-
-            while (index < Settings.RobloxFastFlags.Count
-                && string.Compare(Settings.RobloxFastFlags[index].Name, entry.Name, StringComparison.Ordinal) < 0)
-                index++;
-
-            Settings.RobloxFastFlags.Insert(index, entry);
-
-            NewFastFlagName = string.Empty;
-            NewFastFlagValue = string.Empty;
-            SearchText = string.Empty;
-
-            ApplyFastFlagsSearch();
-        }
-
-        [RelayCommand]
-        private void RemoveFastFlag(FastFlagEntry entry)
-        {
-            Settings.RobloxFastFlags.Remove(entry);
-
-            ApplyFastFlagsSearch();
+            if (FastFlagsEditor.AddNewFlag())
+            {
+                SearchText = string.Empty;
+            }
         }
 
         [RelayCommand]
@@ -241,80 +59,118 @@
         {
             try
             {
-                var mainWindow = GetMainWindow();
-
-                if (mainWindow == null)
-                    return;
-
-                var storageProvider = mainWindow.StorageProvider;
-
-                var startFolder = await storageProvider.TryGetFolderFromPathAsync(Settings.RobloxInstallationPath);
-
-                var result = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                if (MainWindow is not
+                    {
+                    } mainWindow)
                 {
-                    Title = "Select Roblox installation path",
+                    return;
+                }
+
+                IStorageProvider storageProvider = mainWindow.StorageProvider;
+                IReadOnlyList<IStorageFolder> selectedFolders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                {
+                    Title = "Choose the Roblox installation folder",
                     AllowMultiple = false,
-                    SuggestedStartLocation = startFolder
+                    SuggestedStartLocation = await storageProvider.TryGetFolderFromPathAsync(Settings.RobloxInstallationPath)
                 });
 
-                if (result.Count > 0)
-                    Settings.RobloxInstallationPath = result[0].Path.LocalPath;
+                if (selectedFolders.Count > 0)
+                {
+                    Settings.RobloxInstallationPath = selectedFolders[0].Path.LocalPath;
+                }
             }
             catch (Exception ex)
             {
-                Log.Error(ex, nameof(BrowseInstallationPathAsync));
+                Log.Error(ex, "Could not open the folder picker for the Roblox installation path.");
             }
         }
 
-        private void GetFontFamilies()
+        private async Task LoadChangelogAsync()
         {
             try
             {
-                var fontFamilies = new List<string>
-                {
-                    "JetBrains Mono"
-                };
+                string changelog = (await _updater.GetLatestChangelogAsync()).Trim();
 
-                fontFamilies.AddRange(FontManager.Current.SystemFonts.Select(x => x.Name).Distinct().OrderBy(x => x));
-
-                FontFamilies = new ObservableCollection<string>(fontFamilies);
+                _ = await Dispatcher.UIThread.InvokeAsync(() => Changelog = changelog);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, nameof(GetFontFamilies));
+                Log.Warning(ex, "Could not load the changelog.");
+            }
+        }
+
+        private void LoadFontFamilies()
+        {
+            try
+            {
+                FontFamilies = [AppAppearance.BundledFontFamilyName, .. FontManager.Current.SystemFonts.Select(fontFamily => fontFamily.Name).Distinct().Order()];
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Could not load the installed fonts.");
+            }
+        }
+
+        private async Task LoadVersionSourcesAsync()
+        {
+            IReadOnlyList<VersionSourceOption> options = await _versionSourceCatalog.LoadOptionsAsync();
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                VersionSources = [.. options];
+                SelectedVersionSource = VersionSourceCatalog.FindOrFirst(options, Settings.RobloxVersionSource);
+            });
+        }
+
+        partial void OnSearchTextChanged(string value)
+        {
+            FastFlagsEditor.Filter(value);
+        }
+
+        partial void OnSelectedFastFlagsTabChanged(FastFlagsTab value)
+        {
+            if (value == FastFlagsTab.Raw)
+            {
+                FastFlagsEditor.RefreshRawJson();
+            }
+        }
+
+        partial void OnSelectedLanguageChanged(LanguageOption value)
+        {
+            if (value is not null)
+            {
+                Settings.SirstrapLanguage = value.Value;
+            }
+        }
+
+        partial void OnSelectedVersionSourceChanged(VersionSourceOption? value)
+        {
+            if (value is not null)
+            {
+                Settings.RobloxVersionSource = value.Value;
             }
         }
 
         [RelayCommand]
-        private async Task OpenIniFileAsync()
+        private async Task OpenSettingsFileAsync()
         {
             try
             {
+                string settingsFilePath = _directories.SettingsFile;
+
                 await Task.Run(() =>
                 {
-                    var iniPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sirstrap", "Sirstrap.ini");
-
-                    if (!File.Exists(iniPath))
-                        File.Create(iniPath).Close();
-
-                    var processStartInfo = new ProcessStartInfo
+                    if (!File.Exists(settingsFilePath))
                     {
-                        FileName = iniPath,
-                        UseShellExecute = true,
-                        Verb = "open"
-                    };
+                        File.Create(settingsFilePath).Dispose();
+                    }
 
-                    using var process = new Process
-                    {
-                        StartInfo = processStartInfo
-                    };
-
-                    process.Start();
+                    ShellLauncher.Open(settingsFilePath);
                 });
             }
             catch (Exception ex)
             {
-                Log.Error(ex, nameof(OpenIniFileAsync));
+                Log.Error(ex, "Could not open the settings file.");
             }
         }
 
@@ -323,27 +179,21 @@
         {
             try
             {
-                const uint MB_YESNO = 0x00000004;
-                const uint MB_ICONWARNING = 0x00000030;
-                const int IDYES = 6;
-
-                var result = await Task.Run(() =>
-                    MessageBoxW(
-                        IntPtr.Zero,
-                        "This will:\n  • Close every running Roblox and SirHurt application\n  • Delete the Roblox installation, data and registry entries\n  • Delete the Sirstrap data folder (%LocalAppData%\\Sirstrap)\n\nThis action cannot be undone. Are you sure?",
-                        "Run SirHurt Cleaner",
-                        MB_YESNO | MB_ICONWARNING));
-
-                if (result != IDYES)
+                if (!await WarningDialog.ConfirmAsync("Run SirHurt Cleaner", "SirHurt Cleaner will:\n  • Close Roblox and SirHurt\n  • Delete the Roblox installation, its data and its registry entries\n  • Delete the Sirstrap data folder (%LocalAppData%\\Sirstrap)\n\nThis cannot be undone. Select Yes to continue."))
+                {
                     return;
+                }
 
                 IsCleanerRunning = true;
 
-                await Task.Run(() => _cleanupService.Run("manual", Settings.CleanerCleanTempFolders, Settings.CleanerCleanProtectedFiles));
+                bool cleanTempFolders = Settings.CleanerCleanTempFolders;
+                bool cleanProtectedFiles = Settings.CleanerCleanProtectedFiles;
+
+                await Task.Run(() => _cleanupService.Run("manual", cleanTempFolders, cleanProtectedFiles));
             }
             catch (Exception ex)
             {
-                Log.Error(ex, nameof(RunCleanerAsync));
+                Log.Error(ex, "Could not run SirHurt Cleaner.");
             }
             finally
             {
@@ -356,61 +206,19 @@
         {
             try
             {
+                string bootstrapperPath = SirHurtBootstrapperPath;
+
                 await Task.Run(() =>
                 {
-                    var sirHurt = Path.Combine(Settings.SirHurtPath, "bootstrapper.exe");
-
-                    if (!File.Exists(sirHurt))
-                        return;
-
-                    ProcessStartInfo processStartInfo = new()
+                    if (File.Exists(bootstrapperPath))
                     {
-                        FileName = sirHurt
-                    };
-
-                    using Process process = new()
-                    {
-                        StartInfo = processStartInfo
-                    };
-
-                    process.Start();
+                        ShellLauncher.Run(bootstrapperPath);
+                    }
                 });
             }
             catch (Exception ex)
             {
-                Log.Error(ex, nameof(RunSirHurtAsync));
-            }
-        }
-
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
-
-        [RelayCommand]
-        private async Task UninstallAsync()
-        {
-            try
-            {
-                const uint MB_YESNO = 0x00000004;
-                const uint MB_ICONWARNING = 0x00000030;
-                const int IDYES = 6;
-
-                var result = await Task.Run(() =>
-                    MessageBoxW(
-                        IntPtr.Zero,
-                        "This will:\n  • Remove Sirstrap protocol handler from the registry\n  • Delete the Sirstrap data folder (%LocalAppData%\\Sirstrap)\n  • Delete the Sirstrap executable\n\nThis action cannot be undone. Are you sure?",
-                        "Uninstall Sirstrap",
-                        MB_YESNO | MB_ICONWARNING));
-
-                if (result != IDYES)
-                    return;
-
-                await Task.Run(_uninstallService.Uninstall);
-
-                await Dispatcher.UIThread.InvokeAsync(() => Environment.Exit(0));
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, nameof(UninstallAsync));
+                Log.Error(ex, "Could not start SirHurt.");
             }
         }
 
@@ -419,41 +227,106 @@
         {
             try
             {
-                await Task.Run(() =>
-                {
-                    Settings.Set();
+                await Settings.SaveAsync();
 
-                    App.ApplyLanguage();
-                    App.ApplyFontFamily();
+                _appearance.Apply();
+                _systemTray.SetEnabled(Settings.SirstrapTrayMode != TrayMode.None);
 
-                    Dispatcher.UIThread.Invoke(() =>
-                    {
-                        App.ApplyAccentColor();
-                        App.SetTray(Settings.SirstrapTrayMode != TrayMode.None);
-
-                        CloseSpecificWindow<SettingsWindow>();
-                    });
-                });
+                CloseOwnedWindow<SettingsWindow>();
             }
             catch (Exception ex)
             {
-                Log.Error(ex, nameof(SaveAsync));
+                Log.Error(ex, "Could not save the settings.");
             }
         }
 
+        [RelayCommand]
+        private async Task UninstallAsync()
+        {
+            try
+            {
+                if (!await WarningDialog.ConfirmAsync("Uninstall Sirstrap", "Uninstalling Sirstrap will:\n  • Stop Sirstrap from opening Roblox links\n  • Delete the Sirstrap data folder (%LocalAppData%\\Sirstrap)\n  • Delete the Sirstrap program\n\nThis cannot be undone. Select Yes to continue."))
+                {
+                    return;
+                }
+
+                await Task.Run(_uninstaller.Uninstall);
+
+                Environment.Exit(0);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not uninstall Sirstrap.");
+            }
+        }
+
+        private string SirHurtBootstrapperPath => Path.Combine(SirHurtPath, SirHurtBootstrapperFileName);
+
+        public bool CanRunSirHurt { get; }
+
+        [ObservableProperty]
+        public partial string Changelog { get; set; } = string.Empty;
+
+        public string CurrentFullVersion { get; }
+
+        public FastFlagsEditor FastFlagsEditor { get; }
+
         public IReadOnlyList<FastFlagsTab> FastFlagsTabs { get; } = Enum.GetValues<FastFlagsTab>();
 
-        public IReadOnlyList<SettingsTabOption> SettingsTabs { get; } =
-        [
-            new("All", null),
-            _fastFlagsTab,
-            new("Roblox", "Roblox"),
-            new("SirHurt", "SirHurt"),
-            new("Sirstrap", "Sirstrap")
-        ];
+        [ObservableProperty]
+        public partial ObservableCollection<string> FontFamilies { get; set; } = [];
+
+        [ObservableProperty]
+        public partial bool IsCleanerRunning { get; set; }
+
+        public bool IsFastFlagsListVisible => IsFastFlagsTabSelected && SelectedFastFlagsTab == FastFlagsTab.List;
+
+        public bool IsFastFlagsRawVisible => IsFastFlagsTabSelected && SelectedFastFlagsTab == FastFlagsTab.Raw;
+
+        public bool IsFastFlagsTabSelected => SelectedSettingsTab == _fastFlagsTab;
+
+        public bool IsSearchVisible => !IsFastFlagsRawVisible;
 
         public IReadOnlyList<LanguageOption> Languages { get; } = Strings.Languages;
 
+        [ObservableProperty]
+        public partial string SearchText { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsFastFlagsListVisible))]
+        [NotifyPropertyChangedFor(nameof(IsFastFlagsRawVisible))]
+        [NotifyPropertyChangedFor(nameof(IsSearchVisible))]
+        public partial FastFlagsTab SelectedFastFlagsTab { get; set; } = FastFlagsTab.List;
+
+        [ObservableProperty]
+        public partial LanguageOption SelectedLanguage { get; set; }
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsFastFlagsTabSelected))]
+        [NotifyPropertyChangedFor(nameof(IsFastFlagsListVisible))]
+        [NotifyPropertyChangedFor(nameof(IsFastFlagsRawVisible))]
+        [NotifyPropertyChangedFor(nameof(IsSearchVisible))]
+        public partial SettingsTabOption SelectedSettingsTab { get; set; }
+
+        [ObservableProperty]
+        public partial VersionSourceOption? SelectedVersionSource { get; set; }
+
+        public EditableSettings Settings { get; }
+
+        public IReadOnlyList<SettingsTabOption> SettingsTabs { get; } =
+        [
+            new(Strings.Instance.Get("Tab_All"), null),
+            _fastFlagsTab,
+            new(Strings.Instance.Get("Tab_Roblox"), "Roblox"),
+            new(Strings.Instance.Get("Tab_SirHurt"), "SirHurt"),
+            new(Strings.Instance.Get("Tab_Sirstrap"), "Sirstrap")
+        ];
+
+        public string SirHurtPath { get; }
+
         public IReadOnlyList<TrayMode> TrayModes { get; } = Enum.GetValues<TrayMode>();
+
+        [ObservableProperty]
+        public partial ObservableCollection<VersionSourceOption> VersionSources { get; set; } = [];
     }
 }

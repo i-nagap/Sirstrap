@@ -4,25 +4,39 @@ namespace Sirstrap.UI.Behaviors
     {
         public static readonly AttachedProperty<bool> IsEnabledProperty = AvaloniaProperty.RegisterAttached<ScrollViewer, bool>("IsEnabled", typeof(AutoScrollToEnd));
 
-        static AutoScrollToEnd() => IsEnabledProperty.Changed.AddClassHandler<ScrollViewer>(OnIsEnabledChanged);
-
-        public static bool GetIsEnabled(ScrollViewer scrollViewer) => scrollViewer.GetValue(IsEnabledProperty);
-
-        public static void SetIsEnabled(ScrollViewer scrollViewer, bool value) => scrollViewer.SetValue(IsEnabledProperty, value);
+        static AutoScrollToEnd()
+        {
+            _ = IsEnabledProperty.Changed.AddClassHandler<ScrollViewer>(OnIsEnabledChanged);
+        }
 
         private static void OnIsEnabledChanged(ScrollViewer scrollViewer, AvaloniaPropertyChangedEventArgs e)
         {
             if (e.GetNewValue<bool>())
+            {
                 scrollViewer.ScrollChanged += OnScrollChanged;
+            }
             else
+            {
                 scrollViewer.ScrollChanged -= OnScrollChanged;
+            }
         }
 
         private static void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
         {
-            if (sender is ScrollViewer scrollViewer
-                && e.ExtentDelta.Y > 0)
+            if (sender is ScrollViewer scrollViewer && e.ExtentDelta.Y > 0)
+            {
                 scrollViewer.ScrollToEnd();
+            }
+        }
+
+        public static bool GetIsEnabled(ScrollViewer scrollViewer)
+        {
+            return scrollViewer.GetValue(IsEnabledProperty);
+        }
+
+        public static void SetIsEnabled(ScrollViewer scrollViewer, bool value)
+        {
+            _ = scrollViewer.SetValue(IsEnabledProperty, value);
         }
     }
 }

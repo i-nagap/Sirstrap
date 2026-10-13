@@ -1,10 +1,10 @@
 namespace Sirstrap.Core.Cleaner
 {
-    public sealed class CleanupService(CleanerConfig cleanerConfig, ICleanupOrchestrator cleanupOrchestrator, IPerformanceTelemetry performanceTelemetry) : ICleanupService
+    public sealed class CleanupService(CleanerOptions options, CleanupRunner runner, ITelemetry telemetry)
     {
         public void Run(string trigger, bool cleanTempFolders, bool cleanProtectedFiles)
         {
-            using ITelemetryScope scope = performanceTelemetry.Measure("cleaner.run", new Dictionary<string, object>
+            using ITelemetryOperation operation = telemetry.StartOperation("cleaner.run", new Dictionary<string, object>
             {
                 ["trigger"] = trigger,
                 ["cleanTempFolders"] = cleanTempFolders,
@@ -13,16 +13,16 @@ namespace Sirstrap.Core.Cleaner
 
             try
             {
-                cleanerConfig.CleanTempFolders = cleanTempFolders;
-                cleanerConfig.CleanProtectedFiles = cleanProtectedFiles;
+                options.CleanTempFolders = cleanTempFolders;
+                options.CleanProtectedFiles = cleanProtectedFiles;
 
-                cleanupOrchestrator.Run();
+                runner.Run();
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to run the {Trigger} cleanup.", trigger);
+                Log.Error(ex, "Could not run the cleanup (Trigger: {0}).", trigger);
 
-                scope.MarkFailed(ex.GetType().Name);
+                operation.MarkFailed(ex.GetType().Name);
             }
         }
     }

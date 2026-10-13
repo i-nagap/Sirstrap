@@ -1,270 +1,132 @@
-﻿namespace Sirstrap.UI.ViewModels
+namespace Sirstrap.UI.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
-        private readonly SirstrapConfiguration _configuration;
+        private const int ActivePollingIntervalMilliseconds = 100;
+
+        private const int IdlePollingIntervalMilliseconds = 10000;
+
+        private static readonly TimeSpan _recentLogActivityWindow = TimeSpan.FromSeconds(30);
+
+        private readonly RobloxBootstrapper _bootstrapper;
+
+        private readonly CodebergAccounts _codebergAccounts;
+
+        private readonly Func<SettingsWindowViewModel> _createSettingsWindowViewModel;
+
+        private int _displayedLogEntryCount;
+
+        private bool _hasMovedAsideForRoblox;
+
         private readonly HttpClient _httpClient;
-        private readonly IIpcService _ipcService;
-        private readonly ILastLogSink _lastLogSink;
-        private readonly IPathManager _pathManager;
-        private readonly IProtocolHandlerRegistrar _protocolHandlerRegistrar;
-        private readonly RobloxActivityWatcher _robloxActivityWatcher;
-        private readonly ISettingsService _settingsService;
-        private readonly ISirHurtService _sirHurtService;
-        private readonly IWeaoService _weaoService;
 
-#pragma warning disable S1075 // fixed Sirstrap project endpoints, not deployment specific paths
-        private const string GITHUB_PROFILE_URI_PREFIX = "https://github.com/";
-        private const string LOGO_IMAGE_URI_PREFIX = "https://raw.githubusercontent.com/";
-#pragma warning restore S1075
+        private bool _isRobloxRunning;
 
-        [ObservableProperty]
-        private string _currentFullVersion = string.Empty;
+        private readonly LaunchArguments _launchArguments;
 
-        private int _currentPollingInterval = 100;
+        private readonly System.Timers.Timer _pollingTimer = new(ActivePollingIntervalMilliseconds);
 
-        private bool _isMinimized;
+        private readonly RobloxServerLocationWatcher _serverLocationWatcher;
 
-        private DateTimeOffset? _lastLogReceived;
-        private readonly Timer _logPollingTimer;
+        private readonly SirstrapSession _session;
 
-        [ObservableProperty]
-        private Bitmap? _logoImage;
+        private readonly SessionLogSink _sessionLogSink;
 
-        [ObservableProperty]
-        private Bitmap? _profileImage;
+        private readonly Task _sessionStartup;
 
-        [ObservableProperty]
-        private string _serverLocation = string.Empty;
+        private readonly SettingsStore _settingsStore;
 
-        [ObservableProperty]
-        private string _sessionLog = string.Empty;
+        private readonly SirHurtAccount _sirHurtAccount;
 
-        private int _sessionLogCount;
+        private readonly SirstrapSettings _sirstrapSettings;
 
-        [ObservableProperty]
-        private bool _showLaunchButton = Program.Args == null || Program.Args.Length == 0;
+        private readonly SystemTray _systemTray;
 
-        [ObservableProperty]
-        private bool _showServerLocation = false;
+        private readonly ITelemetry _telemetry;
 
-        [ObservableProperty]
-        private string _sirHurtUser = string.Empty;
+        private readonly VersionSourceCatalog _versionSourceCatalog;
 
-        [ObservableProperty]
-        private ObservableCollection<VersionSourceOption> _versionSources = [];
-
-        [ObservableProperty]
-        private VersionSourceOption? _selectedVersionSourceMain;
-
-        private bool _wasRobloxRunning;
-
-        public MainWindowViewModel(
-            SirstrapConfiguration configuration,
-            HttpClient httpClient,
-            IIpcService ipcService,
-            ILastLogSink lastLogSink,
-            IPathManager pathManager,
-            IProtocolHandlerRegistrar protocolHandlerRegistrar,
-            RobloxActivityWatcher robloxActivityWatcher,
-            ISettingsService settingsService,
-            ISirHurtService sirHurtService,
-            ISirstrapVersion sirstrapVersion,
-            IWeaoService weaoService)
+        public MainWindowViewModel(LaunchArguments launchArguments, SirstrapSettings sirstrapSettings, SettingsStore settingsStore, SirstrapSession session, SessionLogSink sessionLogSink, RobloxBootstrapper bootstrapper, RobloxServerLocationWatcher serverLocationWatcher, SirHurtAccount sirHurtAccount, SirstrapVersionInfo versionInfo, CodebergAccounts codebergAccounts, HttpClient httpClient, ITelemetry telemetry, VersionSourceCatalog versionSourceCatalog, SystemTray systemTray, Func<SettingsWindowViewModel> createSettingsWindowViewModel)
         {
-            _configuration = configuration;
+            _launchArguments = launchArguments;
+            _sirstrapSettings = sirstrapSettings;
+            _settingsStore = settingsStore;
+            _session = session;
+            _sessionLogSink = sessionLogSink;
+            _bootstrapper = bootstrapper;
+            _serverLocationWatcher = serverLocationWatcher;
+            _sirHurtAccount = sirHurtAccount;
+            _codebergAccounts = codebergAccounts;
             _httpClient = httpClient;
-            _ipcService = ipcService;
-            _lastLogSink = lastLogSink;
-            _pathManager = pathManager;
-            _protocolHandlerRegistrar = protocolHandlerRegistrar;
-            _robloxActivityWatcher = robloxActivityWatcher;
-            _settingsService = settingsService;
-            _sirHurtService = sirHurtService;
-            _weaoService = weaoService;
+            _telemetry = telemetry;
+            _versionSourceCatalog = versionSourceCatalog;
+            _systemTray = systemTray;
+            _createSettingsWindowViewModel = createSettingsWindowViewModel;
 
-            CurrentFullVersion = sirstrapVersion.GetFullVersion();
-            SirHurtUser = _sirHurtService.GetSirHurtUser();
+            CurrentFullVersion = versionInfo.GetDisplayVersion();
+            SirHurtUser = sirHurtAccount.GetUserName();
+            ShowLaunchButton = launchArguments.IsEmpty;
 
             _ = LoadVersionSourcesAsync();
-            _ = LoadImagesAsync();
+            _ = LoadProfileImageAsync();
 
-            _logPollingTimer = new(_currentPollingInterval);
+            _pollingTimer.Elapsed += (_, _) => OnPollingTick();
 
-            _logPollingTimer.Elapsed += (s, e) => GetLastLogMessageFromLastLogSink();
+            _pollingTimer.Start();
 
-            _logPollingTimer.Start();
+            _sessionStartup = Task.Run(StartSessionAsync);
 
-            _robloxActivityWatcher.ServerLocationChanged += OnServerLocationChanged;
-
-            Task.Run(SomethingAsync);
-
-            if (!ShowLaunchButton)
-                Task.Run(RunAsync);
+            if (!launchArguments.IsEmpty)
+            {
+                _ = Task.Run(RunAsync);
+            }
         }
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool AllocConsole();
+        private void AdjustPollingInterval()
+        {
+            bool hasRecentLogActivity = _sessionLogSink.LastTimestamp is
+            {
+            } lastTimestamp && DateTimeOffset.Now - lastTimestamp <= _recentLogActivityWindow;
+            int pollingInterval = hasRecentLogActivity ? ActivePollingIntervalMilliseconds : IdlePollingIntervalMilliseconds;
 
-        private async Task LoadVersionSourcesAsync()
+            if ((int)_pollingTimer.Interval != pollingInterval)
+            {
+                _pollingTimer.Interval = pollingInterval;
+            }
+        }
+
+        private async Task<Bitmap?> DownloadImageAsync(string uri)
         {
             try
             {
-                var options = await VersionSourceCatalog.BuildAsync(_weaoService);
-
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    VersionSources = new ObservableCollection<VersionSourceOption>(options);
-                    SelectedVersionSourceMain = VersionSources.FirstOrDefault(option => string.Equals(option.Value, _configuration.RobloxVersionSource, StringComparison.OrdinalIgnoreCase))
-                        ?? VersionSources.FirstOrDefault();
-                });
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, nameof(LoadVersionSourcesAsync));
-            }
-        }
-
-        partial void OnSelectedVersionSourceMainChanged(VersionSourceOption? value)
-        {
-            if (value == null
-                || string.Equals(value.Value, _configuration.RobloxVersionSource, StringComparison.OrdinalIgnoreCase))
-                return;
-
-            _configuration.RobloxVersionSource = value.Value;
-            _settingsService.SaveSettings();
-
-            Log.Information("[*] Roblox version source set to {VersionSource} from the launch menu.", value.Value);
-        }
-
-        private void FindRoblox()
-        {
-            try
-            {
-                var processNames = new[] { "RobloxPlayerBeta", "RobloxPlayerBeta.exe" };
-                var isRobloxRunning = false;
-
-                foreach (var processName in processNames)
-                    if (Process.GetProcessesByName(processName).Length > 0)
-                    {
-                        isRobloxRunning = true;
-
-                        break;
-                    }
-
-                if (isRobloxRunning
-                    && !_wasRobloxRunning)
-                {
-                    _robloxActivityWatcher.StartWatching();
-
-                    _wasRobloxRunning = true;
-                }
-                else if (!isRobloxRunning
-                    && _wasRobloxRunning)
-                {
-                    _robloxActivityWatcher.StopWatching();
-
-                    ShowServerLocation = false;
-                    ServerLocation = string.Empty;
-                    _wasRobloxRunning = false;
-                }
-
-                var mainWindow = GetMainWindow();
-
-                if (mainWindow != null
-                    && isRobloxRunning
-                    && !_isMinimized)
-                {
-                    if (_configuration.SirstrapTrayMode == TrayMode.OnRoblox)
-                        Dispatcher.UIThread.InvokeAsync(() =>
-                        {
-                            mainWindow.Hide();
-
-                            App.SetTrayIconVisible(true);
-                        });
-                    else
-                        Dispatcher.UIThread.InvokeAsync(() =>
-                        {
-                            mainWindow.WindowState = WindowState.Minimized;
-                        });
-
-                    _isMinimized = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "[!] Failed to track the Roblox process.");
-            }
-        }
-
-        private void GetLastLogMessageFromLastLogSink()
-        {
-            try
-            {
-                var sessionLogCount = _lastLogSink.SessionLogCount;
-
-                if (sessionLogCount != _sessionLogCount)
-                {
-                    _sessionLogCount = sessionLogCount;
-                    SessionLog = string.Join(Environment.NewLine, _lastLogSink.GetSessionLog());
-                    _lastLogReceived = _lastLogSink.LastLogTimestamp;
-                }
-
-                FindRoblox();
-                GetPollingInterval();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "[!] Failed to read the session log.");
-            }
-        }
-
-        private async Task<Bitmap?> LoadImageAsync(string uri)
-        {
-            try
-            {
-                var bytes = await _httpClient.GetByteArrayAsync(uri);
-
-                using MemoryStream stream = new(bytes);
+                using MemoryStream stream = new(await _httpClient.GetByteArrayAsync(uri));
 
                 return new Bitmap(stream);
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "[!] Failed to load the image from {Uri}.", uri);
+                Log.Debug(ex, "Could not load an image (URL: {0}).", uri);
 
                 return null;
             }
         }
 
-        private async Task LoadImagesAsync()
+        private async Task LoadProfileImageAsync()
         {
-            var profileImage = await GitHubAccounts.ResolveAsync(account => LoadImageAsync($"{GITHUB_PROFILE_URI_PREFIX}{account}.png"));
+            Bitmap? profileImage = await CodebergAccounts.FirstResultAsync(account => DownloadImageAsync(CodebergLinks.ProfileImage(account)));
 
-            await Dispatcher.UIThread.InvokeAsync(() => ProfileImage = profileImage);
-
-            var logoImage = await GitHubAccounts.ResolveAsync(account => LoadImageAsync($"{LOGO_IMAGE_URI_PREFIX}{account}/Sirstrap/main/images/SirstrapIcon.png"));
-
-            await Dispatcher.UIThread.InvokeAsync(() => LogoImage = logoImage);
+            _ = await Dispatcher.UIThread.InvokeAsync(() => ProfileImage = profileImage);
         }
 
-        private void GetPollingInterval()
+        private async Task LoadVersionSourcesAsync()
         {
-            try
-            {
-                var targetPollingInterval = _lastLogReceived.HasValue && (DateTimeOffset.Now - _lastLogReceived.Value).TotalSeconds <= 30 ? 100 : 10000;
+            IReadOnlyList<VersionSourceOption> options = await _versionSourceCatalog.LoadOptionsAsync();
 
-                if (targetPollingInterval != _currentPollingInterval)
-                {
-                    _currentPollingInterval = targetPollingInterval;
-                    _logPollingTimer.Interval = _currentPollingInterval;
-                }
-            }
-            catch (Exception ex)
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Log.Error(ex, "[!] Failed to adjust the log polling interval.");
-            }
+                VersionSources = [.. options];
+                SelectedVersionSource = VersionSourceCatalog.FindOrFirst(options, _sirstrapSettings.RobloxVersionSource);
+            });
         }
 
         [RelayCommand]
@@ -272,60 +134,93 @@
         {
             try
             {
-                if (_sirHurtService.Logout())
-                    SirHurtUser = _sirHurtService.GetSirHurtUser();
+                if (_sirHurtAccount.LogOut())
+                {
+                    SirHurtUser = _sirHurtAccount.GetUserName();
+                }
 
-                Sentry.SentrySdk.Metrics.EmitCounter("ui.action", 1, new Dictionary<string, object> { ["action"] = nameof(Logout) });
+                RecordUserAction(nameof(Logout));
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to log out from SirHurt.");
+                Log.Error(ex, "Could not log out of SirHurt.");
             }
         }
 
-        private void OnServerLocationChanged(object? sender, string location) => Dispatcher.UIThread.InvokeAsync(() =>
+        private void MoveMainWindowAsideForRoblox()
         {
-            ServerLocation = location;
-            ShowServerLocation = !string.IsNullOrEmpty(ServerLocation);
-        });
+            if (MainWindow is not
+                {
+                } mainWindow)
+            {
+                return;
+            }
 
-        [RelayCommand]
-        private async Task OpenGitHubAsync()
+            if (_sirstrapSettings.SirstrapTrayMode == TrayMode.OnRoblox)
+            {
+                _systemTray.HideToTray(mainWindow);
+            }
+            else
+            {
+                mainWindow.WindowState = WindowState.Minimized;
+            }
+        }
+
+        private void OnPollingTick()
         {
             try
             {
-                var account = await GitHubAccounts.ReachableAsync(_httpClient);
-
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = $"{GITHUB_PROFILE_URI_PREFIX}{account}/Sirstrap",
-                    UseShellExecute = true
-                });
-                Sentry.SentrySdk.Metrics.EmitCounter("ui.action", 1, new Dictionary<string, object> { ["action"] = nameof(OpenGitHubAsync) });
+                RefreshSessionLog();
+                TrackRobloxProcess();
+                AdjustPollingInterval();
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to open the GitHub repository.");
+                Log.Error(ex, "Could not update the session log and the Roblox status.");
+            }
+        }
+
+        partial void OnSelectedVersionSourceChanged(VersionSourceOption? value)
+        {
+            if (value is null || string.Equals(value.Value, _sirstrapSettings.RobloxVersionSource, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            _sirstrapSettings.RobloxVersionSource = value.Value;
+
+            _settingsStore.Save();
+
+            Log.Information("Changed the Roblox version source from the launch menu (Source: {0}).", value.Value);
+        }
+
+        [RelayCommand]
+        private async Task OpenProfileAsync()
+        {
+            try
+            {
+                ShellLauncher.Open(CodebergLinks.Profile(await _codebergAccounts.GetReachableAccountAsync()));
+
+                RecordUserAction(nameof(OpenProfileAsync));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not open the Sirstrap profile on Codeberg.");
             }
         }
 
         [RelayCommand]
-        private async Task OpenGitHubProfileAsync()
+        private async Task OpenRepositoryAsync()
         {
             try
             {
-                var account = await GitHubAccounts.ReachableAsync(_httpClient);
+                ShellLauncher.Open(CodebergLinks.Repository(await _codebergAccounts.GetReachableAccountAsync()));
 
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = $"{GITHUB_PROFILE_URI_PREFIX}{account}",
-                    UseShellExecute = true
-                });
-                Sentry.SentrySdk.Metrics.EmitCounter("ui.action", 1, new Dictionary<string, object> { ["action"] = nameof(OpenGitHubProfileAsync) });
+                RecordUserAction(nameof(OpenRepositoryAsync));
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to open the GitHub profile.");
+                Log.Error(ex, "Could not open the Sirstrap repository on Codeberg.");
             }
         }
 
@@ -334,93 +229,139 @@
         {
             try
             {
-                new SettingsWindow { DataContext = Program.Services.GetRequiredService<SettingsWindowViewModel>() }.ShowDialog(GetMainWindow()!);
-                Sentry.SentrySdk.Metrics.EmitCounter("ui.action", 1, new Dictionary<string, object> { ["action"] = nameof(OpenSettings) });
+                if (MainWindow is not
+                    {
+                    } owner)
+                {
+                    return;
+                }
+
+                _ = new SettingsWindow
+                {
+                    DataContext = _createSettingsWindowViewModel()
+                }.ShowDialog(owner);
+
+                RecordUserAction(nameof(OpenSettings));
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to open the settings window.");
+                Log.Error(ex, "Could not open the settings window.");
             }
+        }
+
+        private void RecordUserAction(string action)
+        {
+            _telemetry.RecordCounter("ui.action", new Dictionary<string, object>
+            {
+                ["action"] = action
+            });
+        }
+
+        private void RefreshSessionLog()
+        {
+            int entryCount = _sessionLogSink.EntryCount;
+
+            if (entryCount == _displayedLogEntryCount)
+            {
+                return;
+            }
+
+            _displayedLogEntryCount = entryCount;
+
+            string sessionLog = string.Join(Environment.NewLine, _sessionLogSink.GetEntries());
+
+            Dispatcher.UIThread.Post(() => SessionLog = sessionLog);
         }
 
         [RelayCommand]
         private async Task RunAsync()
         {
+            ShowLaunchButton = false;
+
+            await _sessionStartup;
+
             try
             {
-                ShowLaunchButton = false;
-
-#if !DEBUG
-                await Program.Services.GetRequiredService<IRobloxDownloader>().ExecuteAsync(Program.Args ?? [], SirstrapType.UI);
-#endif
+                if (!SirstrapVersionInfo.IsDebugBuild)
+                {
+                    await _bootstrapper.RunAsync(_launchArguments.Values, SirstrapEdition.UI);
+                }
 
                 Environment.ExitCode = 0;
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to run Sirstrap.");
+                Log.Fatal(ex, "Sirstrap stopped because of an unexpected error.");
+
                 Environment.ExitCode = 1;
             }
             finally
             {
-#if !DEBUG
-                await _ipcService.StopAsync();
-                await Log.CloseAndFlushAsync();
+                if (!SirstrapVersionInfo.IsDebugBuild)
+                {
+                    await _session.StopAsync();
 
-                Environment.Exit(Environment.ExitCode);
-#endif
+                    Environment.Exit(Environment.ExitCode);
+                }
             }
         }
 
-        private async Task SomethingAsync()
+        private async Task StartSessionAsync()
         {
-#if DEBUG
-            AllocConsole();
-#endif
-
-            var logsDirectory = _pathManager.GetLogsPath();
-
-            if (!Directory.Exists(logsDirectory))
-                Directory.CreateDirectory(logsDirectory);
-
-            _pathManager.PurgeOldLogs();
-
-            var appGuid = Guid.NewGuid().ToString("N");
-
-            _settingsService.LoadSettings();
-
-            var loggerConfig = new LoggerConfiguration()
-                .Enrich.WithThreadId()
-                .Enrich.WithThreadName()
-                .Enrich.WithProperty("SirHurtUser", _sirHurtService.GetSirHurtUser())
-                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [Thread: {ThreadId}, {ThreadName}] [User: {SirHurtUser}] {Message:lj}{NewLine}{Exception}")
-                .WriteTo.File(Path.Combine(logsDirectory, $"SirstrapLog{appGuid}.txt"), outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [Thread: {ThreadId}, {ThreadName}] [User: {SirHurtUser}] {Message:lj}{NewLine}{Exception}", fileSizeLimitBytes: 1_048_576, rollOnFileSizeLimit: true, retainedFileCountLimit: 5)
-                .WriteTo.File(Path.Combine(logsDirectory, $"SirstrapErrorsLog{appGuid}.txt"), restrictedToMinimumLevel: LogEventLevel.Error, outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [Thread: {ThreadId}, {ThreadName}] [User: {SirHurtUser}] {Message:lj}{NewLine}{Exception}", fileSizeLimitBytes: 1_048_576, rollOnFileSizeLimit: true, retainedFileCountLimit: 5)
-                .WriteTo.LastLog(_lastLogSink);
-
-#if !DEBUG
-            loggerConfig = loggerConfig.WriteToSentry(_configuration, SirstrapType.UI, appGuid);
-#endif
-
-            Log.Logger = loggerConfig.CreateLogger();
-
-            Log.Information(@"
-   ▄████████  ▄█     ▄████████    ▄████████     ███        ▄████████    ▄████████    ▄███████▄
-  ███    ███ ███    ███    ███   ███    ███ ▀█████████▄   ███    ███   ███    ███   ███    ███
-  ███    █▀  ███▌   ███    ███   ███    █▀     ▀███▀▀██   ███    ███   ███    ███   ███    ███
-  ███        ███▌  ▄███▄▄▄▄██▀   ███            ███   ▀  ▄███▄▄▄▄██▀   ███    ███   ███    ███
-▀███████████ ███▌ ▀▀███▀▀▀▀▀   ▀███████████     ███     ▀▀███▀▀▀▀▀   ▀███████████ ▀█████████▀
-         ███ ███  ▀███████████          ███     ███     ▀███████████   ███    ███   ███ {0}
-   ▄█    ███ ███    ███    ███    ▄█    ███     ███       ███    ███   ███    ███   ███ {1}
- ▄████████▀  █▀     ███    ███  ▄████████▀     ▄████▀     ███    ███   ███    █▀   ▄████▀ {2}
-                    ███    ███                            ███    ███ by SirHurt CSR Team", CurrentFullVersion, AppDomain.CurrentDomain.SetupInformation.TargetFrameworkName, Environment.OSVersion);
-            _settingsService.LoadSettings();
-            _settingsService.EmitSettingsMetrics();
-            _pathManager.PurgePreviousInstallationPath();
-
-            await _ipcService.StartAsync("SirstrapIpc");
-
-            _protocolHandlerRegistrar.RegisterProtocolHandler("roblox-player", Program.Args ?? []);
+            try
+            {
+                await _session.StartAsync(SirstrapEdition.UI, _launchArguments.Values);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not finish starting Sirstrap.");
+            }
         }
+
+        private void TrackRobloxProcess()
+        {
+            bool isRobloxRunning = RobloxProcesses.CountGameProcesses() > 0;
+
+            if (isRobloxRunning != _isRobloxRunning)
+            {
+                _isRobloxRunning = isRobloxRunning;
+
+                if (isRobloxRunning)
+                {
+                    _serverLocationWatcher.Start();
+                }
+                else
+                {
+                    _serverLocationWatcher.Stop();
+                }
+            }
+
+            if (isRobloxRunning && !_hasMovedAsideForRoblox)
+            {
+                _hasMovedAsideForRoblox = true;
+
+                Dispatcher.UIThread.Post(MoveMainWindowAsideForRoblox);
+            }
+        }
+
+        public string CurrentFullVersion { get; }
+
+        [ObservableProperty]
+        public partial Bitmap? ProfileImage { get; set; }
+
+        [ObservableProperty]
+        public partial VersionSourceOption? SelectedVersionSource { get; set; }
+
+        [ObservableProperty]
+        public partial string SessionLog { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        public partial bool ShowLaunchButton { get; set; }
+
+        [ObservableProperty]
+        public partial string SirHurtUser { get; set; }
+
+        [ObservableProperty]
+        public partial ObservableCollection<VersionSourceOption> VersionSources { get; set; } = [];
     }
 }

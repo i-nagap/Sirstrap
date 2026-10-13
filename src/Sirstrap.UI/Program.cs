@@ -1,41 +1,38 @@
 namespace Sirstrap.UI
 {
-    internal sealed class Program
+    internal static class Program
     {
-        private Program()
+        private static void UseBundledNativeLibraries()
         {
+            string nativeLibrariesDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin");
+
+            if (Directory.Exists(nativeLibrariesDirectory))
+            {
+                _ = NativeMethods.SetDllDirectory(nativeLibrariesDirectory);
+            }
         }
 
-        public static string[]? Args { get; set; }
+        internal static ServiceProvider CreateServices(string[] args)
+        {
+            return new ServiceCollection().AddSingleton(new LaunchArguments(args)).AddSingleton<IStatusLine, NullStatusLine>().AddSingleton<IUserPrompt, UnattendedUserPrompt>().AddSirstrapCore().AddSingleton<AppAppearance>().AddSingleton<SystemTray>().AddSingleton<VersionSourceCatalog>().AddTransient<EditableSettings>().AddTransient<MainWindowViewModel>().AddTransient<SettingsWindowViewModel>().AddSingleton<Func<SettingsWindowViewModel>>(services => services.GetRequiredService<SettingsWindowViewModel>).BuildServiceProvider();
+        }
 
-        public static IServiceProvider Services { get; private set; } = null!;
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetDllDirectory(string lpPathName);
-
-        public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect().WithInterFont().LogToTrace();
+        public static AppBuilder BuildAvaloniaApp()
+        {
+            return AppBuilder.Configure<App>().UsePlatformDetect().WithInterFont().LogToTrace();
+        }
 
         [STAThread]
         public static void Main(string[] args)
         {
-            var binDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin");
+            UseBundledNativeLibraries();
 
-            if (Directory.Exists(binDirectoryPath))
-                SetDllDirectory(binDirectoryPath);
+            if (SirstrapVersionInfo.IsDebugBuild)
+            {
+                _ = NativeMethods.AllocConsole();
+            }
 
-            Args = args.Length > 0 ? args : null;
-
-            Services = new ServiceCollection()
-                .AddSingleton<IStatusLine, NullStatusLine>()
-                .AddSingleton<IUserInteraction, UnattendedUserInteraction>()
-                .AddSirstrapCore()
-                .AddTransient<Settings>()
-                .AddTransient<MainWindowViewModel>()
-                .AddTransient<SettingsWindowViewModel>()
-                .BuildServiceProvider();
-
-            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            _ = BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
     }
 }

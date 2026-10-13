@@ -2,56 +2,40 @@ namespace Sirstrap.Core.Cleaner
 {
     public sealed class ConsoleStatusLine : IStatusLine
     {
+        private const string Marker = "» ";
+
+        private readonly Lock _consoleLock = new();
+
         private int _drawnLength;
-        private readonly bool _enabled = !Console.IsOutputRedirected;
+
+        private readonly bool _isConsoleAttached = !Console.IsOutputRedirected;
+
         private string _status = string.Empty;
-        private readonly Lock _sync = new();
 
-        public void Clear() => SetStatus(string.Empty);
-
-        public void InvokeWithStatusHidden(Action action)
-        {
-            lock (_sync)
-            {
-                Erase();
-                action();
-                Draw();
-            }
-        }
-
-        public void SetStatus(string status)
-        {
-            lock (_sync)
-            {
-                Erase();
-
-                _status = status;
-
-                Draw();
-            }
-        }
-
-        #region PRIVATE METHODS
         private void Draw()
         {
-            if (!_enabled
-                || _status.Length == 0)
+            if (!_isConsoleAttached || _status.Length == 0)
+            {
                 return;
+            }
 
-            var maxTextWidth = GetMaxWidth() - 2;
-            var text = _status.Length > maxTextWidth ? _status[..maxTextWidth] : _status;
+            int maximumTextLength = GetConsoleWidth() - Marker.Length;
+            string text = _status.Length > maximumTextLength ? _status[..maximumTextLength] : _status;
+
             Console.ForegroundColor = ConsoleColor.Cyan;
 
-            Console.Write($"» {text}");
+            Console.Write($"{Marker}{text}");
             Console.ResetColor();
 
-            _drawnLength = text.Length + 2;
+            _drawnLength = text.Length + Marker.Length;
         }
 
         private void Erase()
         {
             if (_drawnLength == 0)
+            {
                 return;
+            }
 
             Console.Write('\r');
             Console.Write(new string(' ', _drawnLength));
@@ -60,7 +44,7 @@ namespace Sirstrap.Core.Cleaner
             _drawnLength = 0;
         }
 
-        private static int GetMaxWidth()
+        private static int GetConsoleWidth()
         {
             try
             {
@@ -71,6 +55,34 @@ namespace Sirstrap.Core.Cleaner
                 return 79;
             }
         }
-        #endregion
+
+        public void Clear()
+        {
+            Show(string.Empty);
+        }
+
+        public void RunWithStatusHidden(Action action)
+        {
+            lock (_consoleLock)
+            {
+                Erase();
+
+                action();
+
+                Draw();
+            }
+        }
+
+        public void Show(string status)
+        {
+            lock (_consoleLock)
+            {
+                Erase();
+
+                _status = status;
+
+                Draw();
+            }
+        }
     }
 }

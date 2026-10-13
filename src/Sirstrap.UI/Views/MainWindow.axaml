@@ -75,9 +75,9 @@
                                 Width="32"
                                 Height="32"
                                 Classes="hover-lift"
-                                Command="{Binding OpenGitHubProfileCommand}"
+                                Command="{Binding OpenProfileCommand}"
                                 CornerRadius="999"
-                                ToolTip.Tip="{loc:Tr Main_OpenProfile}">
+                                ToolTip.Tip="{loc:Tr Main_OpenProfileTip}">
                                 <Panel Width="32" Height="32">
                                     <Border
                                         Background="#33ffffff"
@@ -119,38 +119,12 @@
                                 Width="32"
                                 Height="32"
                                 Classes="hover-lift"
-                                Command="{Binding OpenGitHubCommand}"
+                                Command="{Binding OpenRepositoryCommand}"
                                 CornerRadius="999"
-                                ToolTip.Tip="{loc:Tr Main_OpenRepository}">
+                                ToolTip.Tip="{loc:Tr Main_OpenRepositoryTip}">
                                 <Panel Width="32" Height="32">
-                                    <Border
-                                        Background="#33ffffff"
-                                        CornerRadius="999"
-                                        IsVisible="{Binding LogoImage, Converter={x:Static ObjectConverters.IsNull}}">
-                                        <Border.Styles>
-                                            <Style Selector="Border">
-                                                <Style.Animations>
-                                                    <Animation
-                                                        Duration="0:0:1"
-                                                        Easing="SineEaseInOut"
-                                                        IterationCount="Infinite"
-                                                        PlaybackDirection="Alternate">
-                                                        <KeyFrame Cue="0%">
-                                                            <Setter Property="Opacity" Value="1" />
-                                                        </KeyFrame>
-                                                        <KeyFrame Cue="100%">
-                                                            <Setter Property="Opacity" Value="0.3" />
-                                                        </KeyFrame>
-                                                    </Animation>
-                                                </Style.Animations>
-                                            </Style>
-                                        </Border.Styles>
-                                    </Border>
-                                    <Border
-                                        ClipToBounds="True"
-                                        CornerRadius="999"
-                                        IsVisible="{Binding LogoImage, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                        <Image RenderOptions.BitmapInterpolationMode="HighQuality" Source="{Binding LogoImage}" />
+                                    <Border ClipToBounds="True" CornerRadius="999">
+                                        <Image RenderOptions.BitmapInterpolationMode="HighQuality" Source="/Assets/SirstrapIcon.png" />
                                     </Border>
                                 </Panel>
                             </Button>
@@ -183,7 +157,7 @@
                                 Classes="hover-lift"
                                 Command="{Binding LogoutCommand}"
                                 CornerRadius="999"
-                                ToolTip.Tip="{loc:Tr Main_Logout}">
+                                ToolTip.Tip="{loc:Tr Main_LogoutTip}">
                                 <Image
                                     Margin="0"
                                     RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -212,7 +186,7 @@
                             Classes="hover-lift"
                             Command="{Binding OpenSettingsCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="{loc:Tr Main_OpenSettings}">
+                            ToolTip.Tip="{loc:Tr Main_OpenSettingsTip}">
                             <Image
                                 Margin="0"
                                 RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -225,7 +199,7 @@
                             Command="{Binding RunCommand}"
                             CornerRadius="16"
                             IsEnabled="{Binding ShowLaunchButton}"
-                            ToolTip.Tip="{loc:Tr Main_Launch}">
+                            ToolTip.Tip="{loc:Tr Main_LaunchTip}">
                             <SplitButton.Background>
                                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
                                     <GradientStop Offset="0" Color="#736abf6a" />
@@ -244,7 +218,7 @@
                                         Background="Transparent"
                                         BorderThickness="0"
                                         ItemsSource="{Binding VersionSources}"
-                                        SelectedItem="{Binding SelectedVersionSourceMain, Mode=TwoWay}">
+                                        SelectedItem="{Binding SelectedVersionSource, Mode=TwoWay}">
                                         <ListBox.Styles>
                                             <Style Selector="ListBoxItem">
                                                 <Setter Property="MinHeight" Value="0" />

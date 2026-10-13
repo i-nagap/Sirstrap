@@ -1,21 +1,10 @@
-using Serilog.Sinks.SystemConsole.Themes;
-using System.Text;
-
 namespace SirHurt.Cleaner.CLI
 {
     internal static class Program
     {
-        private static async Task Main()
-        {
-            var statusLine = new ConsoleStatusLine();
+        private const string ConsoleOutputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
 
-            Log.Logger = CreateLogger(statusLine);
-
-            TryEnableUtf8Output();
-
-            try
-            {
-                Log.Information(@"
+        private const string StartupBanner = @"
    ▄████████  ▄█     ▄████████    ▄█    █▄    ███    █▄     ▄████████     ███      ▄████████  ▄█          ▄████████    ▄████████ ███▄▄▄▄      ▄████████    ▄████████
   ███    ███ ███    ███    ███   ███    ███   ███    ███   ███    ███ ▀█████████▄ ███    ███ ███         ███    ███   ███    ███ ███▀▀▀██▄   ███    ███   ███    ███
   ███    █▀  ███▌   ███    ███   ███    ███   ███    ███   ███    ███    ▀███▀▀██ ███    █▀  ███         ███    █▀    ███    ███ ███   ███   ███    █▀    ███    ███
@@ -24,30 +13,33 @@ namespace SirHurt.Cleaner.CLI
          ███ ███  ▀███████████   ███    ███   ███    ███ ▀███████████     ███     ███    █▄  ███         ███    █▄    ███    ███ ███   ███   ███    █▄  ▀███████████
    ▄█    ███ ███    ███    ███   ███    ███   ███    ███   ███    ███     ███     ███    ███ ███▌    ▄   ███    ███   ███    ███ ███   ███   ███    ███   ███    ███
  ▄████████▀  █▀     ███    ███   ███    █▀    ████████▀    ███    ███    ▄████▀   ████████▀  █████▄▄██   ██████████   ███    █▀   ▀█   █▀    ██████████   ███    ███
-                    ███    ███                             ███    ███                        ▀                                                            ███    ███
-");
+                    ███    ███                             ███    ███                        ▀                                                            ███    ███";
 
-                Log.Information("[*] SirHurt Cleaner starting up...");
+        private static Logger CreateLogger(IStatusLine statusLine)
+        {
+            Logger consoleLogger = new LoggerConfiguration().MinimumLevel.Information().WriteTo.Console(outputTemplate: ConsoleOutputTemplate, theme: AnsiConsoleTheme.Code).CreateLogger();
 
-                using ServiceProvider serviceProvider = new ServiceCollection()
-                    .AddSingleton<IStatusLine>(statusLine)
-                    .AddSirstrapCleaner()
-                    .BuildServiceProvider();
+            return new LoggerConfiguration().MinimumLevel.Information().WriteTo.Sink(new StatusLinePreservingSink(consoleLogger, statusLine)).CreateLogger();
+        }
 
-                serviceProvider.GetRequiredService<CleanerConfig>().CleanTempFolders =
-                    serviceProvider.GetRequiredService<IUserInteraction>().Confirm("Would you like to clean temporary folders?", defaultAnswer: true);
+        private static async Task Main()
+        {
+            ConsoleStatusLine statusLine = new();
+            Log.Logger = CreateLogger(statusLine);
 
-                serviceProvider.GetRequiredService<ICleanupOrchestrator>().Run();
+            TryEnableUtf8Output();
 
-                if (!Console.IsInputRedirected)
-                {
-                    Log.Information("[*] Press any key to exit...");
-                    Console.ReadKey(intercept: true);
-                }
+            try
+            {
+                Log.Information(StartupBanner);
+                Log.Information("Starting SirHurt Cleaner.");
+
+                RunCleanup(statusLine);
+                WaitForKeyPressWhenInteractive();
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to run the SirHurt Cleaner, the cleanup was aborted.");
+                Log.Fatal(ex, "SirHurt Cleaner stopped because of an unexpected error. The cleanup was not completed.");
 
                 Environment.ExitCode = 1;
             }
@@ -59,17 +51,14 @@ namespace SirHurt.Cleaner.CLI
             }
         }
 
-        private static ILogger CreateLogger(IStatusLine statusLine)
+        private static void RunCleanup(IStatusLine statusLine)
         {
-            var consoleLogger = new LoggerConfiguration()
-                .MinimumLevel.Information()
-                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}", theme: AnsiConsoleTheme.Code)
-                .CreateLogger();
+            using ServiceProvider services = new ServiceCollection().AddSingleton(statusLine).AddSirHurtCleaner().BuildServiceProvider();
+            bool cleanTemporaryFolders = services.GetRequiredService<IUserPrompt>().Confirm("SirHurt Cleaner can also empty the temporary folders of every user.", defaultAnswer: true);
 
-            return new LoggerConfiguration()
-                .MinimumLevel.Information()
-                .WriteTo.Sink(new StatusLinePreservingSink(consoleLogger, statusLine))
-                .CreateLogger();
+            services.GetRequiredService<CleanerOptions>().CleanTempFolders = cleanTemporaryFolders;
+
+            services.GetRequiredService<CleanupRunner>().Run();
         }
 
         private static void TryEnableUtf8Output()
@@ -80,8 +69,20 @@ namespace SirHurt.Cleaner.CLI
             }
             catch (Exception ex)
             {
-                Log.Debug(ex, "[*] Could not switch the console output to UTF-8, the emoji rendering may degrade.");
+                Log.Debug(ex, "Could not switch the console to UTF-8, some symbols may not display correctly.");
             }
+        }
+
+        private static void WaitForKeyPressWhenInteractive()
+        {
+            if (Console.IsInputRedirected)
+            {
+                return;
+            }
+
+            Log.Information("Press any key to exit.");
+
+            _ = Console.ReadKey(intercept: true);
         }
     }
 }

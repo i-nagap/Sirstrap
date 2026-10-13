@@ -1,27 +1,123 @@
 namespace Sirstrap.Core.Cleaner
 {
-    public sealed class SelectiveFolderCleaner(IFileSystem fileSystem, IUserInteraction userInteraction, IFolderDeleter folderDeleter, CleanerConfig config) : ISelectiveFolderCleaner
+    public sealed class SelectiveFolderCleaner(IUserPrompt userPrompt, CleanerOptions options)
     {
-        private readonly HashSet<string> _protectedFileDirectories = config.FilesRequiringConfirmation.Select(f => Path.GetDirectoryName(f) ?? string.Empty).Where(d => d.Length > 0).ToHashSet(StringComparer.Ordinal);
+        private readonly HashSet<string> _foldersHoldingProtectedFiles = options.FilesRequiringConfirmation.Select(Path.GetDirectoryName).OfType<string>().Where(directory => directory.Length > 0).ToHashSet(StringComparer.Ordinal);
 
-        public void CleanFolderContents(string folderPath)
+        private void CleanSubFolder(string subFolderPath, string rootFolderPath)
         {
-            if (!fileSystem.DirectoryExists(folderPath))
+            string subFolderName = Path.GetFileName(subFolderPath);
+
+            if (options.ExcludedSubFolderNames.Contains(subFolderName) || IsRobloxStudioBuildFolder(subFolderName))
             {
-                Log.Debug("[*] Skipping the folder {FolderPath} (not found).", folderPath);
+                Log.Debug("Keeping excluded folder (Path: {0}).", subFolderPath);
 
                 return;
             }
 
-            Log.Information("[*] Cleaning the folder {FolderPath}...", folderPath);
+            if (options.FoldersRequiringConfirmation.Contains(Path.GetRelativePath(rootFolderPath, subFolderPath)))
+            {
+                DeleteFolderAfterConfirmation(subFolderPath);
+
+                return;
+            }
+
+            if (!_foldersHoldingProtectedFiles.Contains(subFolderName))
+            {
+                FolderRemover.Remove(subFolderPath);
+
+                return;
+            }
+
+            foreach (string filePath in Directory.EnumerateFiles(subFolderPath))
+            {
+                DeleteFile(filePath, rootFolderPath);
+            }
+
+            DeleteFolderIfEmpty(subFolderPath);
+        }
+
+        private void DeleteFile(string filePath, string rootFolderPath)
+        {
+            try
+            {
+                if (!options.FilesRequiringConfirmation.Contains(Path.GetRelativePath(rootFolderPath, filePath)))
+                {
+                    File.Delete(filePath);
+                    Log.Debug("Deleted file (Path: {0}).", filePath);
+
+                    return;
+                }
+
+                if (!userPrompt.Confirm(string.Format(CultureInfo.InvariantCulture, "The file {0} contains login or configuration data and will be deleted.", filePath), options.CleanProtectedFiles))
+                {
+                    Log.Information("Kept file with login or configuration data (Path: {0}).", filePath);
+
+                    return;
+                }
+
+                File.Delete(filePath);
+                Log.Information("Deleted file with login or configuration data (Path: {0}).", filePath);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Could not delete file (Path: {0}).", filePath);
+            }
+        }
+
+        private void DeleteFolderAfterConfirmation(string folderPath)
+        {
+            if (!userPrompt.Confirm(string.Format(CultureInfo.InvariantCulture, "The folder {0} contains login or configuration data and will be deleted.", folderPath), options.CleanProtectedFiles))
+            {
+                Log.Information("Kept folder with login or configuration data (Path: {0}).", folderPath);
+
+                return;
+            }
+
+            FolderRemover.Remove(folderPath);
+        }
+
+        private static void DeleteFolderIfEmpty(string folderPath)
+        {
+            if (!Directory.Exists(folderPath) || Directory.EnumerateFileSystemEntries(folderPath).Any())
+            {
+                return;
+            }
 
             try
             {
-                foreach (var filePath in fileSystem.GetFiles(folderPath))
+                Directory.Delete(folderPath, recursive: false);
+                Log.Debug("Deleted empty folder (Path: {0}).", folderPath);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Could not delete empty folder (Path: {0}).", folderPath);
+            }
+        }
+
+        private static bool IsRobloxStudioBuildFolder(string folderName)
+        {
+            return folderName.Length > 0 && folderName.All(char.IsDigit);
+        }
+
+        public void Clean(string folderPath)
+        {
+            if (!Directory.Exists(folderPath))
+            {
+                Log.Debug("Folder not found, nothing to clean (Path: {0}).", folderPath);
+
+                return;
+            }
+
+            Log.Information("Cleaning folder (Path: {0}).", folderPath);
+
+            try
+            {
+                foreach (string filePath in Directory.EnumerateFiles(folderPath))
                 {
-                    if (config.ExcludedFiles.Contains(Path.GetFileName(filePath)))
+                    if (options.ExcludedFileNames.Contains(Path.GetFileName(filePath)))
                     {
-                        Log.Debug("[*] Keeping the excluded file {FilePath}.", filePath);
+                        Log.Debug("Keeping excluded file (Path: {0}).", filePath);
 
                         continue;
                     }
@@ -29,117 +125,21 @@ namespace Sirstrap.Core.Cleaner
                     DeleteFile(filePath, folderPath);
                 }
 
-                foreach (var subDir in fileSystem.GetDirectories(folderPath))
-                    CleanSubDirectory(subDir, folderPath);
+                foreach (string subFolderPath in Directory.EnumerateDirectories(folderPath))
+                {
+                    CleanSubFolder(subFolderPath, folderPath);
+                }
 
-                DeleteDirectoryIfEmpty(folderPath);
+                DeleteFolderIfEmpty(folderPath);
             }
             catch (UnauthorizedAccessException ex)
             {
-                Log.Warning(ex, "[!] The access to the folder {FolderPath} was denied.", folderPath);
+                Log.Warning(ex, "Could not clean folder because access was denied (Path: {0}).", folderPath);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to clean the folder {FolderPath}.", folderPath);
+                Log.Error(ex, "Could not clean folder (Path: {0}).", folderPath);
             }
         }
-
-        #region PRIVATE METHODS
-        private void CleanSubDirectory(string subDir, string baseFolderPath)
-        {
-            var subDirName = Path.GetFileName(subDir);
-
-            if (config.ExcludedSubFolders.Contains(subDirName)
-                || IsRobloxStudioBuildFolder(subDirName))
-            {
-                Log.Debug("[*] Keeping the excluded folder {FolderPath}.", subDir);
-
-                return;
-            }
-
-            if (config.FoldersRequiringConfirmation.Contains(Path.GetRelativePath(baseFolderPath, subDir)))
-            {
-                DeleteFolderWithConfirmation(subDir);
-
-                return;
-            }
-
-            if (!_protectedFileDirectories.Contains(subDirName))
-            {
-                folderDeleter.DeleteFolder(subDir);
-
-                return;
-            }
-
-            foreach (var filePath in fileSystem.GetFiles(subDir))
-                DeleteFile(filePath, baseFolderPath);
-
-            DeleteDirectoryIfEmpty(subDir);
-        }
-
-        private void DeleteDirectoryIfEmpty(string path)
-        {
-            if (!fileSystem.DirectoryExists(path)
-                || fileSystem.GetFileSystemEntries(path).Any())
-                return;
-
-            try
-            {
-                fileSystem.DeleteDirectory(path, recursive: false);
-                Log.Information("[*] Deleted the empty folder {FolderPath}.", path);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "[!] Failed to delete the empty folder {FolderPath}.", path);
-            }
-        }
-
-        private void DeleteFile(string filePath, string baseFolderPath)
-        {
-            try
-            {
-                if (config.FilesRequiringConfirmation.Contains(Path.GetRelativePath(baseFolderPath, filePath)))
-                {
-                    Log.Information("[*] The file {FilePath} contains authentication or configuration data.", filePath);
-
-                    if (!userInteraction.Confirm($"The file {filePath} is used for authentication or configuration. Delete it?", config.CleanProtectedFiles))
-                    {
-                        Log.Information("[*] Kept the protected file {FilePath} at the user's request.", filePath);
-
-                        return;
-                    }
-
-                    fileSystem.DeleteFile(filePath);
-                    Log.Information("[*] Deleted the protected file {FilePath} after user confirmation.", filePath);
-
-                    return;
-                }
-
-                fileSystem.DeleteFile(filePath);
-
-                Log.Debug("[*] Deleted the file {FilePath}.", filePath);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "[!] Failed to delete the file {FilePath}.", filePath);
-            }
-        }
-
-        private void DeleteFolderWithConfirmation(string folderPath)
-        {
-            Log.Information("[*] The folder {FolderPath} contains configuration or authentication data.", folderPath);
-
-            if (userInteraction.Confirm($"The folder {folderPath} contains configuration or authentication data. Delete it?", config.CleanProtectedFiles))
-            {
-                folderDeleter.DeleteFolder(folderPath);
-
-                Log.Information("[*] Deleted the protected folder {FolderPath} after user confirmation.", folderPath);
-            }
-            else
-                Log.Information("[*] Kept the protected folder {FolderPath} at the user's request.", folderPath);
-        }
-
-        private static bool IsRobloxStudioBuildFolder(string name) => !string.IsNullOrEmpty(name) && name.All(char.IsDigit);
-        #endregion
     }
 }

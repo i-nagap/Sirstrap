@@ -1,12 +1,24 @@
-﻿namespace Sirstrap.UI.Views
+namespace Sirstrap.UI.Views
 {
     public class ViewBase : Window
     {
+        private const int CloseAnimationMilliseconds = 150;
+
+        private const double DimmedOwnerOpacity = 0.25;
+
+        private const int FrameDelayMilliseconds = 10;
+
+        private const double HiddenScale = 0.1;
+
+        private const int OpenAnimationMilliseconds = 300;
+
+        private const int OwnerGapPixels = 8;
+
         public ViewBase()
         {
             Opacity = 0;
-            RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
-            RenderTransform = new ScaleTransform(0.1, 0.1);
+            RenderTransformOrigin = RelativePoint.Center;
+            RenderTransform = new ScaleTransform(HiddenScale, HiddenScale);
 
             Loaded += OnLoaded;
             Closing += OnClosing;
@@ -14,142 +26,108 @@
 
         public event EventHandler? OpenAnimationCompleted;
 
-        public bool OpenAnimationFinished { get; private set; }
-
-        private async Task AnimateWindowClose()
+        private async Task AnimateAsync(int durationMilliseconds, Func<double, double> easing, double fromScale, double toScale, double fromOpacity, double toOpacity)
         {
-            var animationDuration = 150;
-            var steps = 15;
-            var stepDelay = animationDuration / steps;
+            int frameCount = durationMilliseconds / FrameDelayMilliseconds;
 
-            for (int i = 0; i <= steps; i++)
+            for (int frame = 0; frame <= frameCount; frame++)
             {
-                var progress = (double)i / steps;
-                var easedProgress = EaseInExpo(progress);
+                double progress = (double)frame / frameCount;
+                double scale = Interpolate(fromScale, toScale, easing(progress));
+                double opacity = Interpolate(fromOpacity, toOpacity, progress);
 
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     if (RenderTransform is ScaleTransform scaleTransform)
                     {
-                        scaleTransform.ScaleX = 1.0 - (0.9 * easedProgress);
-                        scaleTransform.ScaleY = 1.0 - (0.9 * easedProgress);
+                        scaleTransform.ScaleX = scale;
+                        scaleTransform.ScaleY = scale;
                     }
 
-                    Opacity = 1 * (1 - progress);
+                    Opacity = opacity;
                 });
 
-                await Task.Delay(stepDelay);
+                await Task.Delay(FrameDelayMilliseconds);
             }
         }
 
-        private async Task AnimateWindowOpen()
+        private static double EaseInExpo(double progress)
         {
-            var animationDuration = 300;
-            var steps = 30;
-            var stepDelay = animationDuration / steps;
-
-            for (int i = 0; i <= steps; i++)
-            {
-                var progress = (double)i / steps;
-                var easedProgress = EaseOutExpo(progress);
-
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    if (RenderTransform is ScaleTransform scaleTransform)
-                    {
-                        scaleTransform.ScaleX = 0.1 + (0.9 * easedProgress);
-                        scaleTransform.ScaleY = 0.1 + (0.9 * easedProgress);
-                    }
-
-                    Opacity = 1 * progress;
-                });
-
-                await Task.Delay(stepDelay);
-            }
+            return progress <= 0 ? 0 : Math.Pow(2, 10 * (progress - 1));
         }
 
-        private void DimOwnerOpacity()
+        private static double EaseOutExpo(double progress)
         {
-            if (Owner is Window owner)
-                owner.Opacity = 0.25;
+            return progress >= 1 ? 1 : 1 - Math.Pow(2, -10 * progress);
         }
 
-        private static double EaseInExpo(double x) => x <= 0 ? 0 : Math.Pow(2, 10 * (x - 1));
+        private static double Interpolate(double from, double to, double progress)
+        {
+            return from + ((to - from) * progress);
+        }
 
-        private static double EaseOutExpo(double x) => x >= 1 ? 1 : 1 - Math.Pow(2, -10 * x);
-
-        protected async void OnClosing(object? sender, WindowClosingEventArgs e)
+        private async void OnClosing(object? sender, WindowClosingEventArgs e)
         {
             e.Cancel = true;
 
-            if (Program.Services.GetRequiredService<SirstrapConfiguration>().SirstrapTrayMode != TrayMode.None
-                && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-                && ReferenceEquals(desktop.MainWindow, this))
+            if (TryHideInsteadOfClosing())
             {
-                Hide();
-
-                App.SetTrayIconVisible(true);
-
                 return;
             }
 
-            RestoreOwnerOpacity();
+            SetOwnerOpacity(1);
 
-            await AnimateWindowClose();
+            await AnimateAsync(CloseAnimationMilliseconds, EaseInExpo, 1, HiddenScale, 1, 0);
 
             Closing -= OnClosing;
 
             Close();
         }
 
-        protected async void OnLoaded(object? sender, RoutedEventArgs e)
+        private async void OnLoaded(object? sender, RoutedEventArgs e)
         {
-            PositionRelativeToOwner();
-            DimOwnerOpacity();
+            PositionNextToOwner();
+            SetOwnerOpacity(DimmedOwnerOpacity);
 
-            await AnimateWindowOpen();
+            await AnimateAsync(OpenAnimationMilliseconds, EaseOutExpo, HiddenScale, 1, 0, 1);
 
             OpenAnimationFinished = true;
 
             OpenAnimationCompleted?.Invoke(this, EventArgs.Empty);
         }
 
-        private void PositionRelativeToOwner()
+        private void PositionNextToOwner()
         {
-            if (Owner is not Window window)
-                return;
-
-            var screen = Screens.ScreenFromWindow(window);
-
-            if (screen == null)
-                return;
-
-            var ownerWidthPx = (int)(window.Bounds.Width * window.RenderScaling);
-            var ownerHeightPx = (int)(window.Bounds.Height * window.RenderScaling);
-            var thisWidthPx = (int)(Bounds.Width * RenderScaling);
-            var thisHeightPx = (int)(Bounds.Height * RenderScaling);
-            var gap = 8;
-            var candidateX = window.Position.X + ownerWidthPx + gap;
-            var candidateY = window.Position.Y;
-            var workingArea = screen.WorkingArea;
-
-            if (candidateX >= workingArea.X
-                && candidateX + thisWidthPx <= workingArea.Right
-                && candidateY >= workingArea.Y
-                && candidateY + thisHeightPx <= workingArea.Bottom)
+            if (Owner is not Window owner || Screens.ScreenFromWindow(owner) is not
+                {
+                } screen)
             {
-                Position = new PixelPoint(candidateX, candidateY);
-
                 return;
             }
 
-            Position = new PixelPoint(window.Position.X + ((ownerWidthPx - thisWidthPx) / 2), window.Position.Y + ((ownerHeightPx - thisHeightPx) / 2));
+            int ownerWidth = (int)(owner.Bounds.Width * owner.RenderScaling);
+            int ownerHeight = (int)(owner.Bounds.Height * owner.RenderScaling);
+            int width = (int)(Bounds.Width * RenderScaling);
+            int height = (int)(Bounds.Height * RenderScaling);
+
+            PixelRect besideOwner = new(owner.Position.X + ownerWidth + OwnerGapPixels, owner.Position.Y, width, height);
+
+            Position = screen.WorkingArea.Contains(besideOwner) ? besideOwner.Position : new PixelPoint(owner.Position.X + ((ownerWidth - width) / 2), owner.Position.Y + ((ownerHeight - height) / 2));
         }
 
-        private void RestoreOwnerOpacity()
+        private void SetOwnerOpacity(double opacity)
         {
             if (Owner is Window owner)
-                owner.Opacity = 1;
+            {
+                owner.Opacity = opacity;
+            }
         }
+
+        protected virtual bool TryHideInsteadOfClosing()
+        {
+            return false;
+        }
+
+        public bool OpenAnimationFinished { get; private set; }
     }
 }

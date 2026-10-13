@@ -4,8 +4,8 @@ namespace Sirstrap.Core.Cleaner
     {
         void Clear();
 
-        void InvokeWithStatusHidden(Action action);
+        void RunWithStatusHidden(Action action);
 
-        void SetStatus(string status);
+        void Show(string status);
     }
 }

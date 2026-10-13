@@ -1,10 +1,11 @@
 <Solution>
-  <Folder Name="/Tests/">
-    <Project Path="Sirstrap.Core.Tests/Sirstrap.Core.Tests.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
   </Folder>
-  <Project Path="Magenta.Core/Magenta.Core.csproj" />
-  <Project Path="SirHurt.Cleaner.cli/SirHurt.Cleaner.CLI.csproj" />
+  <Project Path="SirHurt.Cleaner.CLI/SirHurt.Cleaner.CLI.csproj" />
   <Project Path="Sirstrap.CLI/Sirstrap.CLI.csproj" />
   <Project Path="Sirstrap.Core/Sirstrap.Core.csproj" />
+  <Project Path="Sirstrap.SDK/Sirstrap.SDK.csproj" />
   <Project Path="Sirstrap.UI/Sirstrap.UI.csproj" />
 </Solution>

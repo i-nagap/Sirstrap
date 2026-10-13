@@ -160,7 +160,7 @@
                                     Classes="hover-lift"
                                     Command="{Binding BrowseInstallationPathCommand}"
                                     CornerRadius="999"
-                                    ToolTip.Tip="{loc:Tr Settings_BrowseInstallationPath}">
+                                    ToolTip.Tip="{loc:Tr Settings_BrowseRobloxInstallationPathTip}">
                                     <Image
                                         Margin="0"
                                         RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -204,8 +204,8 @@
                         </common:SettingsRow>
                         <common:SettingsRow
                             Category="SirHurt"
-                            Label="{loc:Tr Settings_Cleaner}"
-                            ToolTip.Tip="{loc:Tr Settings_CleanerTip}">
+                            Label="{loc:Tr Settings_CleanerOptions}"
+                            ToolTip.Tip="{loc:Tr Settings_CleanerOptionsTip}">
                             <StackPanel
                                 Width="300"
                                 IsEnabled="{Binding Settings.CleanerEnabled}"
@@ -244,7 +244,8 @@
                                     Classes="hover-lift"
                                     Command="{Binding RunCleanerCommand}"
                                     CornerRadius="999"
-                                    IsEnabled="{Binding !IsCleanerRunning}">
+                                    IsEnabled="{Binding !IsCleanerRunning}"
+                                    ToolTip.Tip="{loc:Tr Settings_RunCleanerNowTip}">
                                     <Button.Background>
                                         <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
                                             <GradientStop Offset="0" Color="#73bf6a6a" />
@@ -268,7 +269,6 @@
                                     Margin="0,0,5,0"
                                     BorderThickness="0"
                                     CornerRadius="999"
-                                    DataContext="{Binding Settings}"
                                     IsReadOnly="True"
                                     Text="{Binding SirHurtPath}" />
                                 <Button
@@ -278,8 +278,8 @@
                                     Classes="hover-lift"
                                     Command="{Binding RunSirHurtCommand}"
                                     CornerRadius="999"
-                                    IsEnabled="{Binding Settings.RunSirHurtEnabled}"
-                                    ToolTip.Tip="{loc:Tr Settings_RunSirHurt}">
+                                    IsEnabled="{Binding CanRunSirHurt}"
+                                    ToolTip.Tip="{loc:Tr Settings_RunSirHurtTip}">
                                     <Image
                                         Margin="0"
                                         RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -358,8 +358,8 @@
                         </common:SettingsRow>
                         <common:SettingsRow
                             Category="Sirstrap"
-                            Label="{loc:Tr Settings_SirstrapUpdateChannel}"
-                            ToolTip.Tip="{loc:Tr Settings_SirstrapUpdateChannelTip}">
+                            Label="{loc:Tr Settings_SirstrapChannel}"
+                            ToolTip.Tip="{loc:Tr Settings_SirstrapChannelTip}">
                             <TextBox
                                 Width="300"
                                 BorderThickness="0"
@@ -384,7 +384,7 @@
                             Grid.ColumnSpan="2"
                             IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}"
                             Spacing="5">
-                            <ItemsControl ItemsSource="{Binding FastFlags}">
+                            <ItemsControl ItemsSource="{Binding FastFlagsEditor.VisibleFlags}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <StackPanel Spacing="5" />
@@ -412,10 +412,10 @@
                                                 Width="32"
                                                 Height="32"
                                                 Classes="hover-lift"
-                                                Command="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).RemoveFastFlagCommand}"
+                                                Command="{Binding $parent[Window].((vm:SettingsWindowViewModel)DataContext).FastFlagsEditor.RemoveCommand}"
                                                 CommandParameter="{Binding}"
                                                 CornerRadius="999"
-                                                ToolTip.Tip="{loc:Tr FastFlags_Remove}">
+                                                ToolTip.Tip="{loc:Tr FastFlags_RemoveTip}">
                                                 <Image
                                                     Margin="0"
                                                     RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -432,14 +432,14 @@
                                     BorderThickness="0"
                                     CornerRadius="999"
                                     PlaceholderText="{loc:Tr FastFlags_Name}"
-                                    Text="{Binding NewFastFlagName}" />
+                                    Text="{Binding FastFlagsEditor.NewFlagName}" />
                                 <TextBox
                                     Grid.Column="1"
                                     Margin="0,0,5,0"
                                     BorderThickness="0"
                                     CornerRadius="999"
                                     PlaceholderText="{loc:Tr FastFlags_Value}"
-                                    Text="{Binding NewFastFlagValue}" />
+                                    Text="{Binding FastFlagsEditor.NewFlagValue}" />
                                 <Button
                                     Grid.Column="2"
                                     Width="32"
@@ -447,7 +447,7 @@
                                     Classes="hover-lift"
                                     Command="{Binding AddFastFlagCommand}"
                                     CornerRadius="999"
-                                    ToolTip.Tip="{loc:Tr FastFlags_Add}">
+                                    ToolTip.Tip="{loc:Tr FastFlags_AddTip}">
                                     <Image
                                         Margin="0"
                                         RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -474,7 +474,7 @@
                             BorderThickness="0"
                             CornerRadius="5"
                             IsEnabled="{Binding Settings.RobloxFastFlagsEnabled}"
-                            Text="{Binding RawText}"
+                            Text="{Binding FastFlagsEditor.RawJson}"
                             TextWrapping="Wrap"
                             ToolTip.Tip="{loc:Tr FastFlags_RawTip}" />
                     </Grid>
@@ -518,9 +518,9 @@
                                                 <TextBlock
                                                     FontSize="9"
                                                     Foreground="#e0b341"
-                                                    Text="PREVIEW" />
+                                                    Text="{loc:Tr Tab_Preview}" />
                                             </Border>
-                                            <TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+                                            <TextBlock VerticalAlignment="Center" Text="{Binding Display.Value}" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -630,7 +630,7 @@
                             Classes="hover-lift"
                             Command="{Binding UninstallCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="{loc:Tr Settings_Uninstall}">
+                            ToolTip.Tip="{loc:Tr Settings_UninstallTip}">
                             <Button.Background>
                                 <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
                                     <GradientStop Offset="0" Color="#73bf6a6a" />
@@ -646,9 +646,9 @@
                             Width="32"
                             Height="32"
                             Classes="hover-lift"
-                            Command="{Binding OpenIniFileCommand}"
+                            Command="{Binding OpenSettingsFileCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="{loc:Tr Settings_OpenRawSettings}">
+                            ToolTip.Tip="{loc:Tr Settings_OpenSettingsFileTip}">
                             <Image
                                 Margin="0"
                                 RenderOptions.BitmapInterpolationMode="HighQuality"
@@ -660,7 +660,7 @@
                             Classes="hover-lift"
                             Command="{Binding SaveCommand}"
                             CornerRadius="999"
-                            ToolTip.Tip="{loc:Tr Settings_Save}">
+                            ToolTip.Tip="{loc:Tr Settings_SaveTip}">
                             <Image
                                 Margin="0"
                                 RenderOptions.BitmapInterpolationMode="HighQuality"

@@ -1,11 +1,12 @@
-﻿namespace Sirstrap.UI.ViewModels
+namespace Sirstrap.UI.ViewModels
 {
     public class ViewModelBase : ObservableObject
     {
-        public static void CloseSpecificWindow<T>() where T : Window => GetSpecificWindow<T>()?.Close();
+        protected static void CloseOwnedWindow<TWindow>() where TWindow : Window
+        {
+            MainWindow?.OwnedWindows.OfType<TWindow>().FirstOrDefault()?.Close();
+        }
 
-        public static Window? GetMainWindow() => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow } ? mainWindow : null;
-
-        public static T? GetSpecificWindow<T>() where T : Window => GetMainWindow()?.OwnedWindows.OfType<T>().FirstOrDefault();
+        protected static Window? MainWindow => Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow } ? mainWindow : null;
     }
 }

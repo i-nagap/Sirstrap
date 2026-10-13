@@ -10,6 +10,51 @@ namespace Sirstrap.UI.Views.Common
 
         private List<Control>? _baseline;
 
+        private void ApplyFilters()
+        {
+            if (Children.Count == 0)
+            {
+                return;
+            }
+
+            _baseline ??= [.. Children.Cast<Control>()];
+
+            string? category = Category;
+            string term = SearchTerm ?? string.Empty;
+            bool hasTerm = !string.IsNullOrWhiteSpace(term);
+
+            List<Control> ordered = hasTerm ? [.. _baseline.OrderByDescending(x => Matches(x, term))] : _baseline;
+
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                Control child = ordered[i];
+
+                child.IsVisible = BelongsTo(child, category);
+                child.Opacity = !hasTerm || Matches(child, term) ? 1 : 0.4;
+
+                int currentIndex = Children.IndexOf(child);
+
+                if (currentIndex != i && currentIndex >= 0)
+                {
+                    Children.Move(currentIndex, i);
+                }
+            }
+
+            ScrollViewer? scrollViewer = this.FindAncestorOfType<ScrollViewer>();
+
+            scrollViewer?.Offset = scrollViewer.Offset.WithY(0);
+        }
+
+        private static bool BelongsTo(Control control, string? category)
+        {
+            return string.IsNullOrWhiteSpace(category) || (control is SettingsRow row && string.Equals(row.Category, category, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool Matches(Control control, string term)
+        {
+            return control is SettingsRow row && (row.Label?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false);
+        }
+
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
@@ -21,9 +66,10 @@ namespace Sirstrap.UI.Views.Common
         {
             base.OnPropertyChanged(change);
 
-            if (change.Property == CategoryProperty
-                || change.Property == SearchTermProperty)
+            if (change.Property == CategoryProperty || change.Property == SearchTermProperty)
+            {
                 ApplyFilters();
+            }
         }
 
         public string? Category
@@ -37,40 +83,5 @@ namespace Sirstrap.UI.Views.Common
             get => GetValue(SearchTermProperty);
             set => SetValue(SearchTermProperty, value);
         }
-
-        private void ApplyFilters()
-        {
-            if (Children.Count == 0)
-                return;
-
-            _baseline ??= [.. Children.Cast<Control>()];
-
-            var category = Category;
-            var term = SearchTerm;
-            var hasTerm = !string.IsNullOrWhiteSpace(term);
-            var ordered = hasTerm ? [.. _baseline.OrderByDescending(x => Matches(x, term!))] : _baseline;
-
-            for (var i = 0; i < ordered.Count; i++)
-            {
-                var child = ordered[i];
-
-                child.IsVisible = BelongsTo(child, category);
-                child.Opacity = !hasTerm || Matches(child, term!) ? 1 : 0.4;
-
-                var currentIndex = Children.IndexOf(child);
-
-                if (currentIndex != i && currentIndex >= 0)
-                    Children.Move(currentIndex, i);
-            }
-
-            var scrollViewer = this.FindAncestorOfType<ScrollViewer>();
-
-            if (scrollViewer != null)
-                scrollViewer.Offset = scrollViewer.Offset.WithY(0);
-        }
-
-        private static bool BelongsTo(Control control, string? category) => string.IsNullOrWhiteSpace(category) || (control is SettingsRow row && string.Equals(row.Category, category, StringComparison.OrdinalIgnoreCase));
-
-        private static bool Matches(Control control, string term) => control is SettingsRow row && (row.Label?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false);
     }
 }

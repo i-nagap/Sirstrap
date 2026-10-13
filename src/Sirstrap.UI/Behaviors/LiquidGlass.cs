@@ -1,75 +1,102 @@
-using Avalonia.Layout;
 using Avalonia.Media.Transformation;
 
 namespace Sirstrap.UI.Behaviors
 {
     public static class LiquidGlass
     {
-        private const double FrameMs = 16d;
-        private const double IndicatorDurationMs = 340d;
-        private const double TrailLag = 0.22d;
-        private const double SquashFactor = 0.12d;
-        private const double ContentDurationMs = 220d;
         private const double ContentDrift = 6d;
+
+        private const double ContentDurationMs = 220d;
+
         private const double ContentScale = 0.98;
 
-        public static readonly AttachedProperty<bool> IsTabIndicatorEnabledProperty = AvaloniaProperty.RegisterAttached<ListBox, bool>("IsTabIndicatorEnabled", typeof(LiquidGlass));
+        private const double FrameMs = 16d;
+
+        private const double IndicatorDurationMs = 340d;
+
+        private const double SquashFactor = 0.12d;
+
+        private const double TrailLag = 0.22d;
+
+        private static readonly Dictionary<Control, DispatcherTimer> _contentTimers = [];
+
+        private static readonly Dictionary<ListBox, IndicatorState> _indicators = [];
 
         public static readonly AttachedProperty<bool> IsContentTransitionEnabledProperty = AvaloniaProperty.RegisterAttached<Control, bool>("IsContentTransitionEnabled", typeof(LiquidGlass));
 
-        private static readonly Dictionary<ListBox, IndicatorState> _indicators = [];
-        private static readonly Dictionary<Control, DispatcherTimer> _contentTimers = [];
+        public static readonly AttachedProperty<bool> IsTabIndicatorEnabledProperty = AvaloniaProperty.RegisterAttached<ListBox, bool>("IsTabIndicatorEnabled", typeof(LiquidGlass));
 
         static LiquidGlass()
         {
-            IsTabIndicatorEnabledProperty.Changed.AddClassHandler<ListBox>(OnIsTabIndicatorEnabledChanged);
-            IsContentTransitionEnabledProperty.Changed.AddClassHandler<Control>(OnIsContentTransitionEnabledChanged);
+            _ = IsTabIndicatorEnabledProperty.Changed.AddClassHandler<ListBox>(OnIsTabIndicatorEnabledChanged);
+            _ = IsContentTransitionEnabledProperty.Changed.AddClassHandler<Control>(OnIsContentTransitionEnabledChanged);
         }
 
-        public static bool GetIsTabIndicatorEnabled(ListBox listBox) => listBox.GetValue(IsTabIndicatorEnabledProperty);
-
-        public static void SetIsTabIndicatorEnabled(ListBox listBox, bool value) => listBox.SetValue(IsTabIndicatorEnabledProperty, value);
-
-        public static bool GetIsContentTransitionEnabled(Control control) => control.GetValue(IsContentTransitionEnabledProperty);
-
-        public static void SetIsContentTransitionEnabled(Control control, bool value) => control.SetValue(IsContentTransitionEnabledProperty, value);
-
-        private sealed class IndicatorState
+        private static void AnimateContent(Control control)
         {
-            public required Border Indicator { get; init; }
+            if (_contentTimers.TryGetValue(control, out DispatcherTimer? running))
+            {
+                running.Stop();
+            }
 
-            public required Canvas Layer { get; init; }
+            Stopwatch clock = Stopwatch.StartNew();
+            DispatcherTimer timer = new(DispatcherPriority.Render)
+            {
+                Interval = TimeSpan.FromMilliseconds(FrameMs)
+            };
 
-            public required DispatcherTimer Timer { get; init; }
+            timer.Tick += (_, _) =>
+            {
+                double progress = Math.Clamp(clock.Elapsed.TotalMilliseconds / ContentDurationMs, 0, 1);
+                double eased = EaseOutCubic(progress);
 
-            public Stopwatch Clock { get; } = new();
+                if (progress >= 1)
+                {
+                    timer.Stop();
 
-            public bool IsPlaced { get; set; }
+                    control.ClearValue(Visual.OpacityProperty);
+                    control.ClearValue(Visual.RenderTransformProperty);
 
-            public double FromLeft { get; set; }
+                    return;
+                }
 
-            public double FromRight { get; set; }
+                TransformOperations.Builder builder = TransformOperations.CreateBuilder(2);
 
-            public Rect Target { get; set; }
+                double scale = ContentScale + ((1 - ContentScale) * eased);
+
+                builder.AppendTranslate(0, ContentDrift * (1 - eased));
+                builder.AppendScale(scale, scale);
+
+                control.Opacity = eased;
+                control.RenderTransform = builder.Build();
+            };
+
+            _contentTimers[control] = timer;
+
+            timer.Start();
         }
 
-        private static void OnIsTabIndicatorEnabledChanged(ListBox listBox, AvaloniaPropertyChangedEventArgs e)
+        private static double EaseOutCubic(double x)
         {
-            if (!e.GetNewValue<bool>())
-                return;
+            return 1 - Math.Pow(1 - x, 3);
+        }
 
-            listBox.SelectionChanged += (_, _) => Move(listBox, animate: true);
-
-            listBox.LayoutUpdated += (_, _) => Move(listBox, animate: false);
+        private static double EaseOutQuint(double x)
+        {
+            return 1 - Math.Pow(1 - x, 5);
         }
 
         private static IndicatorState? GetState(ListBox listBox)
         {
-            if (_indicators.TryGetValue(listBox, out var existing))
+            if (_indicators.TryGetValue(listBox, out IndicatorState? existing))
+            {
                 return existing;
+            }
 
             if (listBox.Parent is not Panel panel)
+            {
                 return null;
+            }
 
             Border indicator = new()
             {
@@ -80,24 +107,21 @@ namespace Sirstrap.UI.Behaviors
                 {
                     StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
                     EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
-                    GradientStops =
-                    [
-                        new GradientStop(Color.Parse("#3dffffff"), 0),
-                        new GradientStop(Color.Parse("#14ffffff"), 1)
-                    ]
+                    GradientStops = [new GradientStop(Color.Parse("#3dffffff"), 0), new GradientStop(Color.Parse("#14ffffff"), 1)]
                 }
             };
-
             Canvas layer = new()
             {
                 IsHitTestVisible = false,
-                Children = { indicator }
+                Children =
+                {
+                    indicator
+                }
             };
 
             panel.Children.Insert(0, layer);
 
             DispatcherTimer timer = new(TimeSpan.FromMilliseconds(FrameMs), DispatcherPriority.Render, (s, _) => Tick(listBox));
-
             IndicatorState state = new()
             {
                 Indicator = indicator,
@@ -110,46 +134,29 @@ namespace Sirstrap.UI.Behaviors
             return state;
         }
 
-        private static bool TryGetSelectedBounds(ListBox listBox, IndicatorState state, out Rect bounds)
-        {
-            bounds = default;
-
-            if (listBox.SelectedIndex < 0
-                || listBox.ContainerFromIndex(listBox.SelectedIndex) is not Control container
-                || container.Bounds.Width <= 0
-                || container.Bounds.Height <= 0)
-                return false;
-
-            var origin = container.TranslatePoint(default, state.Layer);
-
-            if (origin == null)
-                return false;
-
-            bounds = new Rect(origin.Value, container.Bounds.Size);
-
-            return true;
-        }
-
         private static void Move(ListBox listBox, bool animate)
         {
-            var state = GetState(listBox);
+            IndicatorState? state = GetState(listBox);
 
-            if (state == null
-                || !TryGetSelectedBounds(listBox, state, out var target))
-                return;
-
-            if (state.Timer.IsEnabled
-                && state.Target == target)
-                return;
-
-            if (!animate
-                || !state.IsPlaced)
+            if (state == null || !TryGetSelectedBounds(listBox, state, out Rect target))
             {
-                if (state.Target == target
-                    && state.IsPlaced)
+                return;
+            }
+
+            if (state.Timer.IsEnabled && state.Target == target)
+            {
+                return;
+            }
+
+            if (!animate || !state.IsPlaced)
+            {
+                if (state.Target == target && state.IsPlaced)
+                {
                     return;
+                }
 
                 state.Timer.Stop();
+
                 state.Target = target;
                 state.IsPlaced = true;
 
@@ -166,36 +173,41 @@ namespace Sirstrap.UI.Behaviors
             state.Timer.Start();
         }
 
-        private static void Tick(ListBox listBox)
+        private static void OnControlPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (!_indicators.TryGetValue(listBox, out var state))
+            if (sender is not Control control || e.Property != Visual.IsVisibleProperty || !e.GetNewValue<bool>())
+            {
                 return;
+            }
 
-            var progress = Math.Clamp(state.Clock.Elapsed.TotalMilliseconds / IndicatorDurationMs, 0, 1);
-            var target = state.Target;
-
-            var movingRight = target.X >= state.FromLeft;
-            var lead = EaseOutQuint(progress);
-            var trail = EaseOutQuint(Math.Clamp((progress - TrailLag) / (1 - TrailLag), 0, 1));
-            var leftEase = movingRight ? trail : lead;
-            var rightEase = movingRight ? lead : trail;
-            var left = state.FromLeft + ((target.X - state.FromLeft) * leftEase);
-            var right = state.FromRight + ((target.Right - state.FromRight) * rightEase);
-
-            var squash = Math.Sin(progress * Math.PI) * SquashFactor;
-            var height = target.Height * (1 - squash);
-
-            Place(state, left, right, target.Y + ((target.Height - height) / 2), height);
-
-            if (progress < 1)
-                return;
-
-            state.Timer.Stop();
-
-            Place(state, target.X, target.Right, target);
+            AnimateContent(control);
         }
 
-        private static void Place(IndicatorState state, double left, double right, Rect target) => Place(state, left, right, target.Y, target.Height);
+        private static void OnIsContentTransitionEnabledChanged(Control control, AvaloniaPropertyChangedEventArgs e)
+        {
+            if (!e.GetNewValue<bool>())
+            {
+                return;
+            }
+
+            control.PropertyChanged += OnControlPropertyChanged;
+        }
+
+        private static void OnIsTabIndicatorEnabledChanged(ListBox listBox, AvaloniaPropertyChangedEventArgs e)
+        {
+            if (!e.GetNewValue<bool>())
+            {
+                return;
+            }
+
+            listBox.SelectionChanged += (_, _) => Move(listBox, animate: true);
+            listBox.LayoutUpdated += (_, _) => Move(listBox, animate: false);
+        }
+
+        private static void Place(IndicatorState state, double left, double right, Rect target)
+        {
+            Place(state, left, right, target.Y, target.Height);
+        }
 
         private static void Place(IndicatorState state, double left, double right, double top, double height)
         {
@@ -206,63 +218,97 @@ namespace Sirstrap.UI.Behaviors
             state.Indicator.Height = Math.Max(0, height);
         }
 
-        private static void OnIsContentTransitionEnabledChanged(Control control, AvaloniaPropertyChangedEventArgs e)
+        private static void Tick(ListBox listBox)
         {
-            if (!e.GetNewValue<bool>())
-                return;
-
-            control.PropertyChanged += OnControlPropertyChanged;
-        }
-
-        private static void OnControlPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-        {
-            if (sender is not Control control
-                || e.Property != Visual.IsVisibleProperty
-                || !e.GetNewValue<bool>())
-                return;
-
-            AnimateContent(control);
-        }
-
-        private static void AnimateContent(Control control)
-        {
-            if (_contentTimers.TryGetValue(control, out var running))
-                running.Stop();
-
-            Stopwatch clock = Stopwatch.StartNew();
-
-            DispatcherTimer timer = new(TimeSpan.FromMilliseconds(FrameMs), DispatcherPriority.Render, (s, _) =>
+            if (!_indicators.TryGetValue(listBox, out IndicatorState? state))
             {
-                var progress = Math.Clamp(clock.Elapsed.TotalMilliseconds / ContentDurationMs, 0, 1);
-                var eased = EaseOutCubic(progress);
+                return;
+            }
 
-                if (progress >= 1)
-                {
-                    ((DispatcherTimer)s!).Stop();
+            double progress = Math.Clamp(state.Clock.Elapsed.TotalMilliseconds / IndicatorDurationMs, 0, 1);
 
-                    control.ClearValue(Visual.OpacityProperty);
-                    control.ClearValue(Visual.RenderTransformProperty);
+            Rect target = state.Target;
 
-                    return;
-                }
+            bool movingRight = target.X >= state.FromLeft;
+            double lead = EaseOutQuint(progress);
+            double trail = EaseOutQuint(Math.Clamp((progress - TrailLag) / (1 - TrailLag), 0, 1));
+            double leftEase = movingRight ? trail : lead;
+            double rightEase = movingRight ? lead : trail;
+            double left = state.FromLeft + ((target.X - state.FromLeft) * leftEase);
+            double right = state.FromRight + ((target.Right - state.FromRight) * rightEase);
+            double squash = Math.Sin(progress * Math.PI) * SquashFactor;
+            double height = target.Height * (1 - squash);
 
-                TransformOperations.Builder builder = TransformOperations.CreateBuilder(2);
-                var scale = ContentScale + ((1 - ContentScale) * eased);
+            Place(state, left, right, target.Y + ((target.Height - height) / 2), height);
 
-                builder.AppendTranslate(0, ContentDrift * (1 - eased));
-                builder.AppendScale(scale, scale);
+            if (progress < 1)
+            {
+                return;
+            }
 
-                control.Opacity = eased;
-                control.RenderTransform = builder.Build();
-            });
+            state.Timer.Stop();
 
-            _contentTimers[control] = timer;
-
-            timer.Start();
+            Place(state, target.X, target.Right, target);
         }
 
-        private static double EaseOutCubic(double x) => 1 - Math.Pow(1 - x, 3);
+        private static bool TryGetSelectedBounds(ListBox listBox, IndicatorState state, out Rect bounds)
+        {
+            bounds = default;
 
-        private static double EaseOutQuint(double x) => 1 - Math.Pow(1 - x, 5);
+            if (listBox.SelectedIndex < 0 || listBox.ContainerFromIndex(listBox.SelectedIndex) is not Control container || container.Bounds.Width <= 0 || container.Bounds.Height <= 0)
+            {
+                return false;
+            }
+
+            Point? origin = container.TranslatePoint(default, state.Layer);
+
+            if (origin == null)
+            {
+                return false;
+            }
+
+            bounds = new Rect(origin.Value, container.Bounds.Size);
+
+            return true;
+        }
+
+        public static bool GetIsContentTransitionEnabled(Control control)
+        {
+            return control.GetValue(IsContentTransitionEnabledProperty);
+        }
+
+        public static bool GetIsTabIndicatorEnabled(ListBox listBox)
+        {
+            return listBox.GetValue(IsTabIndicatorEnabledProperty);
+        }
+
+        public static void SetIsContentTransitionEnabled(Control control, bool value)
+        {
+            _ = control.SetValue(IsContentTransitionEnabledProperty, value);
+        }
+
+        public static void SetIsTabIndicatorEnabled(ListBox listBox, bool value)
+        {
+            _ = listBox.SetValue(IsTabIndicatorEnabledProperty, value);
+        }
+
+        private sealed class IndicatorState
+        {
+            public Stopwatch Clock { get; } = new();
+
+            public double FromLeft { get; set; }
+
+            public double FromRight { get; set; }
+
+            public required Border Indicator { get; init; }
+
+            public bool IsPlaced { get; set; }
+
+            public required Canvas Layer { get; init; }
+
+            public Rect Target { get; set; }
+
+            public required DispatcherTimer Timer { get; init; }
+        }
     }
 }

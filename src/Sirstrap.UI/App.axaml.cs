@@ -2,73 +2,58 @@ namespace Sirstrap.UI
 {
     public partial class App : Application
     {
-        private static TrayIcon? _trayIcon;
-
-        public static void ApplyAccentColor()
+        private static void ScheduleConfiguredCleanups(IClassicDesktopStyleApplicationLifetime desktop, SirstrapSettings settings, CleanupService cleanupService)
         {
-            try
+            void RunCleanup(string trigger)
             {
-                SetAccentColor(Program.Services.GetRequiredService<SirstrapConfiguration>().SirstrapAccentColor);
+                cleanupService.Run(trigger, settings.CleanerCleanTempFolders, settings.CleanerCleanProtectedFiles);
             }
-            catch (Exception ex)
+
+            if (settings.CleanerEnabled && settings.CleanerCleanOnLaunch)
             {
-                Log.Error(ex, "[!] Failed to apply the accent color.");
+                _ = Task.Run(() => RunCleanup("launch"));
             }
+
+            desktop.Exit += (_, _) =>
+            {
+                if (settings.CleanerEnabled && settings.CleanerCleanOnExit)
+                {
+                    RunCleanup("exit");
+                }
+            };
         }
 
-        public static void SetAccentColor(string hexColor)
+        private static void StartDesktop(IClassicDesktopStyleApplicationLifetime desktop, IServiceProvider services)
         {
-            if (Current?.Resources == null
-                || !Color.TryParse(hexColor, out var color))
-                return;
+            SirstrapSettings settings = services.GetRequiredService<SirstrapSettings>();
+            SystemTray systemTray = services.GetRequiredService<SystemTray>();
 
-            Current.Resources["SystemAccentColor"] = color;
-            Current.Resources["SystemAccentColorLight1"] = LightenColor(color, 0.15);
-            Current.Resources["SystemAccentColorLight2"] = LightenColor(color, 0.30);
-            Current.Resources["SystemAccentColorLight3"] = LightenColor(color, 0.45);
-            Current.Resources["SystemAccentColorDark1"] = DarkenColor(color, 0.15);
-            Current.Resources["SystemAccentColorDark2"] = DarkenColor(color, 0.30);
-            Current.Resources["SystemAccentColorDark3"] = DarkenColor(color, 0.45);
-        }
+            services.GetRequiredService<SettingsStore>().Load();
+            services.GetRequiredService<AppAppearance>().Apply();
 
-        public static void ApplyFontFamily()
-        {
-            try
+            MainWindow mainWindow = new()
             {
-                if (Current is not App app)
-                    return;
+                DataContext = services.GetRequiredService<MainWindowViewModel>(),
+                SystemTray = systemTray
+            };
 
-                Program.Services.GetRequiredService<ISettingsService>().LoadSettings();
+            desktop.MainWindow = mainWindow;
 
-                var fontFamilyName = Program.Services.GetRequiredService<SirstrapConfiguration>().SirstrapFontFamily;
+            systemTray.SetEnabled(settings.SirstrapTrayMode != TrayMode.None);
 
-                FontFamily fontFamily;
-
-                if (fontFamilyName == "JetBrains Mono")
-                    fontFamily = new FontFamily("avares://Sirstrap/Assets#JetBrains Mono");
-                else
-                    fontFamily = new FontFamily(fontFamilyName);
-
-                app.Resources["AppFontFamily"] = fontFamily;
-            }
-            catch (Exception ex)
+            if (settings.SirstrapTrayMode == TrayMode.OnLaunch)
             {
-                Log.Error(ex, "[!] Failed to apply the font family.");
-            }
-        }
+                void HideToTrayOnFirstOpen(object? sender, EventArgs e)
+                {
+                    mainWindow.Opened -= HideToTrayOnFirstOpen;
 
-        public static void ApplyLanguage()
-        {
-            try
-            {
-                Program.Services.GetRequiredService<ISettingsService>().LoadSettings();
+                    systemTray.HideToTray(mainWindow);
+                }
 
-                Strings.Instance.SetLanguage(Program.Services.GetRequiredService<SirstrapConfiguration>().SirstrapLanguage);
+                mainWindow.Opened += HideToTrayOnFirstOpen;
             }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "[!] Failed to apply the language.");
-            }
+
+            ScheduleConfiguredCleanups(desktop, settings, services.GetRequiredService<CleanupService>());
         }
 
         public override void Initialize()
@@ -84,117 +69,10 @@ namespace Sirstrap.UI
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                ApplyLanguage();
-
-                desktop.MainWindow = new MainWindow { DataContext = Program.Services.GetRequiredService<MainWindowViewModel>() };
-
-                ApplyFontFamily();
-                ApplyAccentColor();
-
-                var trayMode = Program.Services.GetRequiredService<SirstrapConfiguration>().SirstrapTrayMode;
-
-                if (trayMode != TrayMode.None)
-                    SetTray(true);
-
-                if (trayMode == TrayMode.OnLaunch)
-                {
-                    void OnFirstOpen(object? sender, EventArgs e)
-                    {
-                        desktop.MainWindow.Opened -= OnFirstOpen;
-
-                        desktop.MainWindow.Hide();
-
-                        SetTrayIconVisible(true);
-                    }
-
-                    desktop.MainWindow.Opened += OnFirstOpen;
-                }
-
-                var configuration = Program.Services.GetRequiredService<SirstrapConfiguration>();
-
-                if (configuration.CleanerEnabled
-                    && configuration.CleanerCleanOnLaunch)
-                    Task.Run(() => RunCleanup(configuration, "launch"));
-
-                desktop.Exit += (_, _) =>
-                {
-                    if (configuration.CleanerEnabled
-                        && configuration.CleanerCleanOnExit)
-                        RunCleanup(configuration, "exit");
-                };
+                StartDesktop(desktop, Program.CreateServices(desktop.Args ?? []));
             }
 
             base.OnFrameworkInitializationCompleted();
         }
-
-        public static void SetTray(bool enabled)
-        {
-            if (Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-                return;
-
-            if (enabled
-                && _trayIcon == null)
-            {
-                var showNativeMenuItem = new NativeMenuItem("Show");
-
-                showNativeMenuItem.Click += (_, _) =>
-                {
-                    if (desktop.MainWindow is { } window)
-                    {
-                        SetTrayIconVisible(false);
-
-                        window.Show();
-
-                        window.WindowState = WindowState.Normal;
-                    }
-                };
-
-                var exitNativeMenuItem = new NativeMenuItem("Exit");
-
-                exitNativeMenuItem.Click += (_, _) =>
-                {
-                    _trayIcon?.Dispose();
-
-                    _trayIcon = null;
-
-                    desktop.Shutdown();
-                };
-
-                var trayNativeMenu = new NativeMenu();
-
-                trayNativeMenu.Items.Add(showNativeMenuItem);
-                trayNativeMenu.Items.Add(new NativeMenuItemSeparator());
-                trayNativeMenu.Items.Add(exitNativeMenuItem);
-
-#pragma warning disable S1075 // avares:// resource URI, not a local path
-                _trayIcon = new TrayIcon
-                {
-                    Icon = new WindowIcon(Avalonia.Platform.AssetLoader.Open(new Uri("avares://Sirstrap/Assets/favicon.ico"))),
-                    IsVisible = false,
-                    Menu = trayNativeMenu,
-                    ToolTipText = "Sirstrap"
-                };
-#pragma warning restore S1075
-
-                desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            }
-            else if (!enabled
-                && _trayIcon != null)
-            {
-                _trayIcon.Dispose();
-
-                _trayIcon = null;
-
-                desktop.ShutdownMode = ShutdownMode.OnLastWindowClose;
-            }
-        }
-
-        public static void SetTrayIconVisible(bool visible) => _trayIcon?.IsVisible = visible;
-
-        private static Color DarkenColor(Color color, double factor) => new(color.A, (byte)(color.R * (1 - factor)), (byte)(color.G * (1 - factor)), (byte)(color.B * (1 - factor)));
-
-        private static Color LightenColor(Color color, double factor) => new(color.A, (byte)Math.Min(255, color.R + (255 - color.R) * factor), (byte)Math.Min(255, color.G + (255 - color.G) * factor), (byte)Math.Min(255, color.B + (255 - color.B) * factor));
-
-        private static void RunCleanup(SirstrapConfiguration configuration, string trigger) => Program.Services.GetRequiredService<ICleanupService>().Run(trigger, configuration.CleanerCleanTempFolders, configuration.CleanerCleanProtectedFiles);
     }
 }

@@ -1,90 +1,38 @@
 namespace Sirstrap.CLI
 {
-    internal sealed class Program
+    internal static class Program
     {
-        private Program()
-        {
-        }
-
         public static async Task Main(string[] args)
         {
-            using ServiceProvider serviceProvider = new ServiceCollection()
-                .AddSirstrapCore()
-                .BuildServiceProvider();
+            using ServiceProvider services = new ServiceCollection().AddSirstrapCore().BuildServiceProvider();
 
-            var settingsService = serviceProvider.GetRequiredService<ISettingsService>();
-            var pathManager = serviceProvider.GetRequiredService<IPathManager>();
-            var sirHurtService = serviceProvider.GetRequiredService<ISirHurtService>();
-            var sirstrapVersion = serviceProvider.GetRequiredService<ISirstrapVersion>();
-            var lastLogSink = serviceProvider.GetRequiredService<ILastLogSink>();
-            var ipcService = serviceProvider.GetRequiredService<IIpcService>();
+            SirstrapSession session = services.GetRequiredService<SirstrapSession>();
 
             try
             {
-                var logsDirectory = pathManager.GetLogsPath();
+                await session.StartAsync(SirstrapEdition.CLI, args);
 
-                if (!Directory.Exists(logsDirectory))
-                    Directory.CreateDirectory(logsDirectory);
-
-                pathManager.PurgeOldLogs();
-
-                var appGuid = Guid.NewGuid().ToString("N");
-
-                settingsService.LoadSettings();
-
-                var loggerConfig = new LoggerConfiguration()
-                    .Enrich.WithThreadId()
-                    .Enrich.WithThreadName()
-                    .Enrich.WithProperty("SirHurtUser", sirHurtService.GetSirHurtUser())
-                    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [Thread: {ThreadId}, {ThreadName}] [User: {SirHurtUser}] {Message:lj}{NewLine}{Exception}")
-                    .WriteTo.File(Path.Combine(logsDirectory, $"SirstrapLog{appGuid}.txt"), outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [Thread: {ThreadId}, {ThreadName}] [User: {SirHurtUser}] {Message:lj}{NewLine}{Exception}", fileSizeLimitBytes: 1_048_576, rollOnFileSizeLimit: true, retainedFileCountLimit: 5)
-                    .WriteTo.File(Path.Combine(logsDirectory, $"SirstrapErrorsLog{appGuid}.txt"), restrictedToMinimumLevel: LogEventLevel.Error, outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [Thread: {ThreadId}, {ThreadName}] [User: {SirHurtUser}] {Message:lj}{NewLine}{Exception}", fileSizeLimitBytes: 1_048_576, rollOnFileSizeLimit: true, retainedFileCountLimit: 5)
-                    .WriteTo.LastLog(lastLogSink);
-
-#if !DEBUG
-                loggerConfig = loggerConfig.WriteToSentry(serviceProvider.GetRequiredService<SirstrapConfiguration>(), SirstrapType.CLI, appGuid);
-#endif
-
-                Log.Logger = loggerConfig.CreateLogger();
-
-                Log.Information(@"
-   ▄████████  ▄█     ▄████████    ▄████████     ███        ▄████████    ▄████████    ▄███████▄
-  ███    ███ ███    ███    ███   ███    ███ ▀█████████▄   ███    ███   ███    ███   ███    ███
-  ███    █▀  ███▌   ███    ███   ███    █▀     ▀███▀▀██   ███    ███   ███    ███   ███    ███
-  ███        ███▌  ▄███▄▄▄▄██▀   ███            ███   ▀  ▄███▄▄▄▄██▀   ███    ███   ███    ███
-▀███████████ ███▌ ▀▀███▀▀▀▀▀   ▀███████████     ███     ▀▀███▀▀▀▀▀   ▀███████████ ▀█████████▀
-         ███ ███  ▀███████████          ███     ███     ▀███████████   ███    ███   ███ {0}
-   ▄█    ███ ███    ███    ███    ▄█    ███     ███       ███    ███   ███    ███   ███ {1}
- ▄████████▀  █▀     ███    ███  ▄████████▀     ▄████▀     ███    ███   ███    █▀   ▄████▀ {2}
-                    ███    ███                            ███    ███ by SirHurt CSR Team", sirstrapVersion.GetFullVersion(), AppDomain.CurrentDomain.SetupInformation.TargetFrameworkName, Environment.OSVersion);
-                settingsService.LoadSettings();
-                settingsService.EmitSettingsMetrics();
-
-                pathManager.PurgePreviousInstallationPath();
-
-                await ipcService.StartAsync("SirstrapIpc");
-
-                serviceProvider.GetRequiredService<IProtocolHandlerRegistrar>().RegisterProtocolHandler("roblox-player", args);
-
-#if !DEBUG
-                await serviceProvider.GetRequiredService<IRobloxDownloader>().ExecuteAsync(args, SirstrapType.CLI);
-#endif
+                if (!SirstrapVersionInfo.IsDebugBuild)
+                {
+                    await services.GetRequiredService<RobloxBootstrapper>().RunAsync(args, SirstrapEdition.CLI);
+                }
 
                 Environment.ExitCode = 0;
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[!] Failed to run Sirstrap.");
+                Log.Fatal(ex, "Sirstrap stopped because of an unexpected error.");
+
                 Environment.ExitCode = 1;
             }
             finally
             {
-#if !DEBUG
-                await ipcService.StopAsync();
-                await Log.CloseAndFlushAsync();
+                if (!SirstrapVersionInfo.IsDebugBuild)
+                {
+                    await session.StopAsync();
 
-                Environment.Exit(Environment.ExitCode);
-#endif
+                    Environment.Exit(Environment.ExitCode);
+                }
             }
         }
     }
